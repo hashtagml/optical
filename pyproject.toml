@@ -1,0 +1,15 @@
+[tool.poetry]
+authors = ["HashTagML <hashtagml19@gmail.com>"]
+description = "Utilities for vision related tasks"
+name = "optical"
+version = "0.0.1"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
