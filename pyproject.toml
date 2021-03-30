@@ -1,15 +1,67 @@
 [tool.poetry]
-authors = ["HashTagML <hashtagml19@gmail.com>"]
+authors = ["Bishwarup B <write2bishwarup@gmail.com>", "Satheesh K <satheeshkatipomu@gmail.com>", "Aman G <amangupta0044@gmail.com>"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+]
 description = "Utilities for vision related tasks"
+homepage = "https://github.com/hashtagml/optical"
+include = ["MANIFEST.in", "CONTRIBUTING.md"]
+license = "MIT"
 name = "optical"
+readme = "README.md"
 version = "0.0.1"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+joblib = "^1.0.1"
+loguru = "^0.5.3"
+pandas = "^1.2.3"
+python = "^3.7.1"
+tabulate = "^0.8.9"
+tqdm = "^4.59.0"
 
 [tool.poetry.dev-dependencies]
+black = "^20.8b1"
+flake8 = "^3.9.0"
 pytest = "^5.2"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
+
+[tool.black]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+include = '\.pyi?$'
+line-length = 119
+target-version = ['py35', 'py36', 'py37', 'py38']
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  "error",
+  "ignore::UserWarning", # note the use of single quote below to denote "raw" strings in TOML
+  "ignore::DeprecationWarning",
+  'ignore:function ham\(\) is deprecated:DeprecationWarning',
+]
