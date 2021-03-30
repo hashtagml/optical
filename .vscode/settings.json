@@ -1,0 +1,39 @@
+{
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#ab307e",
+        "activityBar.activeBorder": "#25320e",
+        "activityBar.background": "#ab307e",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#25320e",
+        "activityBarBadge.foreground": "#e7e7e7"
+    },
+    "peacock.color": "#832561",
+    "restructuredtext.confPath": "",
+    "restructuredtext.languageServer.disabled": true,
+    "restructuredtext.linter.disabled": true,
+    "psi-header.variables": [
+        [
+            "author",
+            "HashTagML"
+        ],
+        [
+            "projectCreationYear",
+            "2021"
+        ],
+    ],
+    "psi-header.changes-tracking.modAuthor": "@lastModifiedBy:   ",
+    "psi-header.changes-tracking.modDate": "@lastModifiedTime: ",
+    "psi-header.templates": [
+        {
+            "language": "*",
+            "template": [
+                "__author__: <<author>>",
+                "license: MIT",
+                "Created: <<filecreated('dddd, Do MMMM YYYY')>>",
+            ]
+        }
+    ],
+    "python.pythonPath": "/Users/bishwarup.b/opt/anaconda3/envs/optical/bin/python",
+    "python.linting.flake8Enabled": true
+}
