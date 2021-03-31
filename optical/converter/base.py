@@ -11,12 +11,14 @@ import altair as alt
 import pandas as pd
 
 from .utils import filter_split_category
+from .converter import convert_yolo
 
 
 class FormatSpec(ABC):
     """The base class to represent all annotation formats"""
 
     def __init__(self):
+        self.root = None
         self.master_df = None
 
     @abstractmethod
@@ -61,7 +63,7 @@ class FormatSpec(ABC):
         """
 
         df = filter_split_category(self.master_df, split, category)
-        # limit = min(min(limit, len(df)), 5000)
+        limit = min(min(limit, len(df)), 5000)
         print(len(df))
         df = df.sample(n=limit, replace=False, random_state=42)
         return alt.Chart(df).mark_circle(size=30).encode(x="width", y="height", color="category")
@@ -84,3 +86,6 @@ class FormatSpec(ABC):
             inplace=True,
         )
         return df
+
+    def convert_yolo(self):
+        return convert_yolo(self.master_df, self.root)
