@@ -4,11 +4,46 @@ license: MIT
 Created: Sunday, 28th March 2021
 """
 
-from typing import Optional, Union
-import os
 import json
+import os
+import warnings
 from pathlib import Path
+from typing import Any, Callable, Optional, Union
+
 import pandas as pd
+
+
+def ifnone(x: Any, y: Any, transform: Optional[Callable] = None, type_safe: bool = False):
+    """if x is None return y otherwise x after applying transofrmation ``transform`` and
+    casting the result back to original type if ``type_safe``
+
+    Args:
+        x (Any): returns x if x is not none
+        y (Any): returns y if x is none
+        transform (Optional[Callable], optional): applies transform to the output. Defaults to None.
+        type_safe (bool, optional): if true, tries casting the output to the original type. Defaults to False.
+    """
+
+    if transform is not None:
+        assert callable(transform), "`transform` should be either `None` or instance of `Callable`"
+    else:
+
+        def transform(x):
+            return x
+
+    if x is None:
+        orig_type = type(y)
+        out = transform(y)
+    else:
+        orig_type = type(x)
+        out = transform(x)
+    if type_safe:
+        try:
+            out = orig_type(out)
+        except (ValueError, TypeError):
+            warnings.warn(f"output could not be casted as type {orig_type.__name__}")
+            pass
+    return out
 
 
 def get_image_dir(root: Union[str, os.PathLike]):
