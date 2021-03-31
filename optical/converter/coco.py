@@ -13,8 +13,8 @@ from typing import List, Union
 import pandas as pd
 import numpy as np
 
-from ..base import FormatSpec
-from ..utils import exists, get_annotation_dir, get_image_dir, read_coco
+from .base import FormatSpec
+from .utils import exists, get_annotation_dir, get_image_dir, read_coco
 
 
 class COCO(FormatSpec):
