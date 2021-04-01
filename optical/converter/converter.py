@@ -102,3 +102,26 @@ def convert_yolo(
 
         for image_id, ystr in tqdm(zip(image_ids, yolo_strings), total=len(image_ids), desc=f"split: {split}"):
             write_yolo_txt(image_id, output_subdir, ystr)
+
+
+def convert_csv(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+
+    df["x_max"] = df["x_min"] + df["width"]
+    df["y_max"] = df["y_min"] + df["height"]
+    df.drop(["width", "height"], axis=1, inplace=True)
+    for col in ("x_min", "y_min", "x_max", "y_max"):
+        df[col] = df[col].astype(np.int32)
+
+    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    splits = df.split.unique().tolist()
+
+    for split in splits:
+        split_df = df.query("split == @split")
+        split_df.drop(["split"], axis=1, inplace=True)
+        split_df.to_csv(output_dir.joinpath(f"{split}.csv"), index=False)
