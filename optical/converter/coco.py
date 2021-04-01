@@ -17,7 +17,7 @@ from .base import FormatSpec
 from .utils import exists, get_annotation_dir, get_image_dir, read_coco
 
 
-class COCO(FormatSpec):
+class Coco(FormatSpec):
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
         self._image_dir = get_image_dir(root)

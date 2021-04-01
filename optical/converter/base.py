@@ -11,7 +11,7 @@ import altair as alt
 import pandas as pd
 
 from .utils import filter_split_category
-from .converter import convert_yolo
+from .converter import convert_csv, convert_yolo
 
 
 class FormatSpec(ABC):
@@ -87,5 +87,14 @@ class FormatSpec(ABC):
         )
         return df
 
-    def convert_yolo(self):
-        return convert_yolo(self.master_df, self.root)
+    def convert(self, to: str, output_dir: Optional[str] = None):
+        if to.lower() == "yolo":
+            return convert_yolo(self.master_df, self.root, output_dir)
+        if to.lower() == "coco":
+            pass
+        if to.lower() == "pascal":
+            pass
+        if to.lower() == "csv":
+            return convert_csv(self.master_df, self.root, output_dir)
+        if to.lower() == "sagemaker":
+            pass
