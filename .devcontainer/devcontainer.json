@@ -65,7 +65,8 @@
         "ms-python.python",
         "psioniq.psi-header",
         "njpwerner.autodocstring",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "eamodio.gitlens"
     ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
