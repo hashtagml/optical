@@ -51,6 +51,13 @@ def convert_yolo(
     root: Union[str, os.PathLike, PosixPath],
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
+    """converts to yolo from master dataframe
+
+    Args:
+        df (pd.DataFrame): master dataframe
+        root (Union[str, os.PathLike, PosixPath]): root dir for the data
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory. Defaults to None.
+    """
 
     output_dir = ifnone(output_dir, Path(root) / "yolo" / "annotations", Path)
     output_dir.mkdir(parents=True, exist_ok=True)

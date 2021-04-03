@@ -6,9 +6,10 @@ Created: Sunday, 28th March 2021
 
 import os
 from typing import Optional, Union
+
 from .coco import Coco
-from .yolo import Yolo
 from .csv import Csv
+from .yolo import Yolo
 
 SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo}
 
