@@ -22,15 +22,15 @@
         "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
         "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
         "workbench.colorCustomizations": {
-            "activityBar.activeBackground": "#ab307e",
+            "activityBar.activeBackground": "#00db92",
             "activityBar.activeBorder": "#25320e",
-            "activityBar.background": "#ab307e",
-            "activityBar.foreground": "#e7e7e7",
-            "activityBar.inactiveForeground": "#e7e7e799",
-            "activityBarBadge.background": "#25320e",
-            "activityBarBadge.foreground": "#e7e7e7"
+            "activityBar.background": "#00db92",
+            "activityBar.foreground": "#020202",
+            "activityBar.inactiveForeground": "#1d191999",
+            "activityBarBadge.background": "#555555",
+            "activityBarBadge.foreground": "#ffffff",
         },
-        "peacock.color": "#832561",
+        // "peacock.color": "#832561",
         "restructuredtext.confPath": "",
         "restructuredtext.languageServer.disabled": true,
         "restructuredtext.linter.disabled": true,
@@ -67,7 +67,9 @@
         "psioniq.psi-header",
         "njpwerner.autodocstring",
         "ms-python.vscode-pylance",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "aaron-bond.better-comments",
+        "be5invis.toml"
     ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],

@@ -4,9 +4,10 @@ license: MIT
 Created: Wednesday, 31st March 2021
 """
 
-from .base import FormatSpec
-from typing import Union
 import os
+from typing import Union
+
+from .base import FormatSpec
 
 
 class Csv(FormatSpec):
