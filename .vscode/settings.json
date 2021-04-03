@@ -34,7 +34,7 @@
             ]
         }
     ],
-    "python.pythonPath": "/Users/bishwarup.b/opt/anaconda3/envs/optical/bin/python",
+    "python.pythonPath": "/usr/local/bin/python",
     "python.linting.flake8Enabled": true,
     "autoDocstring.docstringFormat": "google",
 }
