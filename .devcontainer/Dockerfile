@@ -14,4 +14,6 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
+RUN chmod 777 -R $POETRY_HOME
+
 COPY . /workspaces/optical/
