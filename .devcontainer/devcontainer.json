@@ -69,7 +69,8 @@
         "ms-python.vscode-pylance",
         "eamodio.gitlens",
         "aaron-bond.better-comments",
-        "be5invis.toml"
+        "be5invis.toml",
+        "lextudio.restructuredtext"
     ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
