@@ -6,14 +6,12 @@ RUN apt-get update && apt-get install -y curl
 
 ENV POETRY_HOME="/opt/poetry"
 ENV PATH="$POETRY_HOME/bin:$PATH"
+ENV POETRY_VIRTUALENVS_CREATE=false
 
 WORKDIR /workspaces/optical/
-COPY poetry.lock pyproject.toml /workspaces/optical/
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-RUN poetry config virtualenvs.create false
-RUN poetry install
-
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 RUN chmod 777 -R $POETRY_HOME
 
 COPY . /workspaces/optical/
+RUN poetry install
