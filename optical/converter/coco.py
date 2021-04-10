@@ -22,6 +22,7 @@ class Coco(FormatSpec):
         self.root = root
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
+        self._has_image_split = False
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()
@@ -30,6 +31,9 @@ class Coco(FormatSpec):
     def _find_splits(self):
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
         ann_splits = [x.stem for x in Path(self._annotation_dir).glob("*.json")]
+
+        if im_splits:
+            self._has_image_split = True
 
         no_anns = set(im_splits).difference(ann_splits)
         if no_anns:
@@ -48,7 +52,6 @@ class Coco(FormatSpec):
             columns=["image_id", "image_width", "image_height", "x_min", "y_min", "width", "height", "category"],
         )
         for split in self._splits:
-            # info = DotMap()
 
             coco_json = self._annotation_dir / f"{split}.json"
             images, annots, cats = read_coco(coco_json)

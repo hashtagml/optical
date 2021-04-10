@@ -7,6 +7,7 @@ Created: Sunday, 28th March 2021
 import json
 import os
 import warnings
+import shutil
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
 
@@ -80,3 +81,16 @@ def filter_split_category(df: pd.DataFrame, split: Optional[str] = None, categor
         df = df.query("category == @category")
 
     return df
+
+
+def copyfile(
+    src: Union[str, os.PathLike], dest: Union[str, os.PathLike], filename: Optional[Union[str, os.PathLike]] = None
+) -> None:
+    if filename is not None:
+        filename = Path(src) / filename
+
+    dest = Path(dest) / filename.name
+    try:
+        shutil.copyfile(filename, dest)
+    except FileNotFoundError:
+        pass
