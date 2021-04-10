@@ -4,14 +4,16 @@ license: MIT
 Created: Tuesday, 30th March 2021
 """
 
+import os
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 import altair as alt
 import pandas as pd
 
-from .utils import filter_split_category
+from ..visualizer.visualizer import Visualizer
 from .converter import convert_csv, convert_yolo
+from .utils import filter_split_category, get_image_dir, ifnone
 
 
 class FormatSpec(ABC):
@@ -109,3 +111,12 @@ class FormatSpec(ABC):
             return convert_csv(self.master_df, self.root, output_dir)
         if to.lower() == "sagemaker":
             pass
+
+    def visualizer(
+        self,
+        images_dir: Optional[Union[str, os.PathLike]] = None,
+        split: Optional[str] = None,
+        img_size: Optional[int] = 512,
+    ):
+        images_dir = ifnone(images_dir, get_image_dir(self.root))
+        return Visualizer(images_dir, self.master_df, split, img_size)
