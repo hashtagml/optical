@@ -19,6 +19,7 @@ class FormatSpec(ABC):
 
     def __init__(self):
         self.root = None
+        self._has_image_split = None
         self.master_df = None
 
     @abstractmethod
@@ -87,9 +88,19 @@ class FormatSpec(ABC):
         )
         return df
 
-    def convert(self, to: str, output_dir: Optional[str] = None):
+    def convert(
+        self, to: str, output_dir: Optional[str] = None, save_under: str = "labels", copy_images: bool = False
+    ):
+        print(copy_images)
         if to.lower() == "yolo":
-            return convert_yolo(self.master_df, self.root, output_dir)
+            return convert_yolo(
+                self.master_df,
+                self.root,
+                has_image_split=self._has_image_split,
+                copy_images=copy_images,
+                save_under=save_under,
+                output_dir=output_dir,
+            )
         if to.lower() == "coco":
             pass
         if to.lower() == "pascal":
