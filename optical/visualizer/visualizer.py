@@ -34,12 +34,12 @@ class Visualizer:
         split: Optional[str] = None,
         img_size: int = 512,
     ):
-        assert check_num_imgs(self.images_dir), f"No images found in {(self.images_dir)}, Please check."
-        req_columns = ["image_id", "x_min", "y_min", "width", "height", "category", "class_id"]
+        assert check_num_imgs(images_dir), f"No images found in {(images_dir)}, Please check."
+        req_cols = ["image_id", "x_min", "y_min", "width", "height", "category", "class_id"]
         assert check_df_cols(
-            dataframe.columns.to_list(), req_columns=req_columns
+            dataframe.columns.to_list(), req_cols=req_cols
         ), f"Some required columns are not present in the dataframe.\
-        Columns required for visualizing the annotations are {','.join(req_columns)}."
+        Columns required for visualizing the annotations are {','.join(req_cols)}."
         self.images_dir = images_dir
         self.resize = (img_size, img_size)
         self.original_df = dataframe
@@ -55,8 +55,11 @@ class Visualizer:
         self.previous_batch = []
         self.previous_args = {}
 
-    def __getitem__(self, index):
-        img_df = self.filtered_df[self.filtered_df["image_id"] == index]
+    def __getitem__(self, index, use_original):
+        if use_original:
+            img_df = self.original_df[self.original_df["image_id"] == index]
+        else:
+            img_df = self.filtered_df[self.filtered_df["image_id"] == index]
         img_bboxes = []
         scores = []
         for _, row in img_df.iterrows():
@@ -89,16 +92,20 @@ class Visualizer:
 
         self.filtered_df = self._apply_filters(**kwargs) if do_filter else self.filtered_df
         unique_images = list(self.filtered_df.image_id.unique())
-
+        use_original = False
         batch_img_indices = []
+
         if index is not None or name is not None:
+            unique_images_original = list(self.original_df.image_id.unique())
             if index is not None:
-                index = index % len(unique_images)
-                batch_img_indices = [unique_images[index]]
-            elif name is not None and name in unique_images:
+                index = index % len(unique_images_original)
+                batch_img_indices = [unique_images_original[index]]
+                use_original = True
+            elif name is not None and name in unique_images_original:
                 batch_img_indices = [name]
+                use_original = True
             else:
-                warnings.warn(f"{name} not found in the dataset. Please check")
+                print(f"{name} not found in the dataset. Please check")
 
         else:
             actual_num_images = min(len(unique_images), num_imgs)
@@ -114,7 +121,9 @@ class Visualizer:
                 batch_img_indices = unique_images[start_index:end_index]
 
         backend = "threading"
-        r = Parallel(n_jobs=-1, backend=backend)(delayed(self.__getitem__)(idx) for idx in batch_img_indices)
+        r = Parallel(n_jobs=-1, backend=backend)(
+            delayed(self.__getitem__)(idx, use_original) for idx in batch_img_indices
+        )
         return r
 
     def show_batch(
