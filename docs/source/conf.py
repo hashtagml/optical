@@ -63,12 +63,12 @@ templates_path = ["_templates"]
 
 
 # html_theme = "alabaster"
-html_theme = "sphinx_rtd_theme"
-# html_logo = "_static/logo_small.png"
+html_theme = "sphinx_rtd_theme"  # "pydata_sphinx_theme"
+html_logo = "_static/logo.png"
 html_theme_options = {"navigation_depth": 4, "logo_only": False, "display_version": False}
-html_context = {
-    "display_github": True,
-}
+# html_context = {
+#     "display_github": True,
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
