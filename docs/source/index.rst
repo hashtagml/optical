@@ -10,19 +10,16 @@ optical
 
 optical is a tool designed to make a bunch of routine computer vision task easy.
 
-
 .. toctree::
-   :caption: Overview
-   :titlesonly:
    :maxdepth: 2
-
-   Installation <install>
-   Gettign Started <overview>
-
+   :caption: Overview
    
+   Installation <install>
+   Getting Started <overview>
+
 .. toctree::
+   :maxdepth: 2
    :caption: Contributing
-   :maxdepth: 4
 
    Coding Requirements <coding_requirements>
    Issues <issues>
@@ -31,10 +28,9 @@ optical is a tool designed to make a bunch of routine computer vision task easy.
    Documentation <builddocs>
    Pull Requests <pull_requests>
 
-
 .. toctree::
-   :caption: Advanced
    :maxdepth: 1
+   :Caption: Advanced
 
    API Documentation <api>
    Changelog <changelog>
