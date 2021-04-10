@@ -23,6 +23,13 @@ def check_num_imgs(images_dir: Union[str, os.PathLike]) -> int:
     return sum([file_counts.get(ext, 0) for ext in IMAGE_EXT])
 
 
+def check_df_cols(df_cols: List, req_cols: List):
+    for r_col in req_cols:
+        if r_col not in df_cols:
+            return False
+    return True
+
+
 class Resizer(object):
     """Rescale the image in a sample to a given size.
     Args:
@@ -76,8 +83,8 @@ class Resizer(object):
         if not hasattr(bboxes, "ndim"):
             bboxes = np.array(bboxes)
 
-        bboxes[:, 2] += bboxes[:, 0]
-        bboxes[:, 3] += bboxes[:, 1]
+        # bboxes[:, 2] += bboxes[:, 0]
+        # bboxes[:, 3] += bboxes[:, 1]
 
         bboxes[:, 0] = bboxes[:, 0] / self.upsample[0]
         bboxes[:, 1] = bboxes[:, 1] / self.upsample[1]
@@ -164,7 +171,9 @@ def render_grid_mpl(
     for ax, im, im_name in zip(grid, drawn_imgs, image_names):
         # Iterating over the grid returns the Axes.
         ax.imshow(im)
-        ax.set_title(im_name)
+        im_name = im_name.split("/")[-1]
+        title = "\n".join(textwrap.wrap(im_name, width=32))
+        ax.set_title(title)
         ax.axis("off")
         ax.set_xticks([])
         ax.set_yticks([])
@@ -190,6 +199,7 @@ def render_grid_pil(
         drawn_img = drawn_imgs[i]
         img_name = image_names[i]
         drawn_img = ImageOps.expand(drawn_img, border=IMAGE_BORDER, fill=(255, 255, 255))
+        img_name = img_name.split("/")[-1]
         lines = textwrap.wrap(img_name, width=32)
         y_text = IMAGE_BORDER // 2 if len(lines) <= 1 else 0
         dimg = ImageDraw.Draw(drawn_img)
