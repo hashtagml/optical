@@ -23,6 +23,10 @@ class Annotation:
         self.format = format
         self.formatspec = SUPPORTED_FORMATS[format.lower()](root)
 
+    @property
+    def label_df(self):
+        return self.formatspec.master_df
+
     def describe(self):
         return self.formatspec.describe()
 
@@ -35,7 +39,7 @@ class Annotation:
     def bbox_stats(self, split: Optional[str] = None, category: Optional[str] = None):
         return self.formatspec.bbox_stats(split, category)
 
-    def convert(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None):
+    def convert(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
         if not to.lower() in SUPPORTED_FORMATS:
             raise ValueError(f"`{format}` is not a supported conversion format")
 
@@ -43,4 +47,4 @@ class Annotation:
             print("Nice Try!")
             return
 
-        self.formatspec.convert(to.lower(), output_dir)
+        self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
