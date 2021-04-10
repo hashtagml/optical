@@ -14,8 +14,6 @@
             "2021"
         ],
     ],
-    "psi-header.changes-tracking.modAuthor": "@lastModifiedBy:   ",
-    "psi-header.changes-tracking.modDate": "@lastModifiedTime: ",
     "psi-header.templates": [
         {
             "language": "*",
@@ -26,17 +24,7 @@
             ]
         }
     ],
-    "python.pythonPath": "/Users/bishwarup.b/opt/anaconda3/envs/optical/bin/python",
     "python.linting.flake8Enabled": true,
     "autoDocstring.docstringFormat": "google",
     "python.formatting.provider": "black",
-    "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#ab307e",
-        "activityBar.activeBorder": "#25320e",
-        "activityBar.background": "#ab307e",
-        "activityBar.foreground": "#e7e7e7",
-        "activityBar.inactiveForeground": "#e7e7e799",
-        "activityBarBadge.background": "#25320e",
-        "activityBarBadge.foreground": "#e7e7e7"
-    },
 }
