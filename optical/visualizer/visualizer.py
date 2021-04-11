@@ -134,11 +134,11 @@ class Visualizer:
         """
         self.filtered_df = self._apply_filters(**kwargs) if do_filter else self.filtered_df
         unique_images = list(self.filtered_df.image_id.unique())
-        use_original = False
+        use_original = kwargs.get("use_original", False)
         batch_img_indices = []
 
         if num_imgs == -1:
-            batch_img_indices = unique_images
+            batch_img_indices = list(self.original_df.image_id.unique()) if use_original else unique_images
 
         elif index is not None or name is not None:
             unique_images_original = list(self.original_df.image_id.unique())
@@ -224,6 +224,10 @@ class Visualizer:
         else:
             warnings.warn("No valid images found to visualize.")
             return
+
+    def reset_filters(self):
+        """Resets all the filters applied on original dataframe."""
+        self.filtered_df = self.original_df.copy()
 
     def _render_image_grid(
         self,
@@ -322,7 +326,7 @@ class Visualizer:
                     if label not in ds_classes:
                         warnings.warn(f"{label} category is not present in the dataset. Please check")
             if len(labels) > 0:
-                curr_df = curr_df[curr_df["category"].isin(labels)]
+                curr_df = curr_df[curr_df["category"].str.lower().isin(labels)]
         return curr_df
 
     def show_image(
@@ -364,8 +368,11 @@ class Visualizer:
             warnings.warn("No valid images found to visualize.")
             return
 
-    def show_video(self, **kwargs) -> Any:
+    def show_video(self, use_original: bool = True, **kwargs) -> Any:
         """Displays whole dataset as a video.
+
+        Args:
+            use_original(bool): Whether to original dataset or filtered dataset.Defaults to ``True``
 
         Keyword Args:
             show_image_name(bool): Whether to show image names in the video or not.
@@ -377,7 +384,7 @@ class Visualizer:
             Any: Returns IPython media object.
         """
 
-        batch = self._get_batch(num_imgs=-1, **kwargs)
+        batch = self._get_batch(num_imgs=-1, use_original=use_original, **kwargs)
         drawn_imgs, image_names = self._draw_images(batch, **kwargs)
 
         if len(drawn_imgs) > 0:
