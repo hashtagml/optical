@@ -21,6 +21,7 @@ from .utils import (
     plot_boxes,
     render_grid_mpl,
     render_grid_pil,
+    render_grid_mpy,
     get_class_color_map,
     check_df_cols,
 )
@@ -95,7 +96,10 @@ class Visualizer:
         use_original = False
         batch_img_indices = []
 
-        if index is not None or name is not None:
+        if num_imgs == -1:
+            batch_img_indices = unique_images
+
+        elif index is not None or name is not None:
             unique_images_original = list(self.original_df.image_id.unique())
             if index is not None:
                 index = index % len(unique_images_original)
@@ -157,38 +161,30 @@ class Visualizer:
             return drawn_imgs[0]
 
         if len(drawn_imgs) > 0:
-            return self._render_image_grid(num_imgs, drawn_imgs, image_names, render)
+            return self._render_image_grid(num_imgs, drawn_imgs, image_names, render, **kwargs)
         else:
             warnings.warn("No valid images found to visualize.")
             return
 
     def _render_image_grid(
-        self, num_imgs, drawn_imgs, image_names, render: str = "mpl", save_path: Optional[str] = None
+        self,
+        num_imgs,
+        drawn_imgs,
+        image_names,
+        render: str = "mpl",
+        save_path: Optional[str] = None,
+        **kwargs,
     ):
 
         cols = 2 if num_imgs <= 6 else 3
         cols = 1 if num_imgs == 1 else cols
         rows = math.ceil(num_imgs / cols)
         if render.lower() == "mpl":
-            render_grid_mpl(
-                drawn_imgs,
-                image_names,
-                num_imgs,
-                cols,
-                rows,
-                self.resize[0],
-                save_path,
-            )
+            render_grid_mpl(drawn_imgs, image_names, num_imgs, cols, rows, self.resize[0], save_path, **kwargs)
         elif render.lower() == "pil":
-            return render_grid_pil(
-                drawn_imgs,
-                image_names,
-                num_imgs,
-                cols,
-                rows,
-                self.resize[0],
-                save_path,
-            )
+            return render_grid_pil(drawn_imgs, image_names, num_imgs, cols, rows, self.resize[0], save_path, **kwargs)
+        elif render.lower() == "mpy":
+            return render_grid_mpy(drawn_imgs, image_names, num_imgs, cols, rows, self.resize[0], save_path, **kwargs)
         else:
             raise RuntimeError("Invalid Image grid rendering format, should be either mpl or pil.")
 
@@ -253,6 +249,17 @@ class Visualizer:
 
         if len(drawn_img) > 0:
             return self._render_image_grid(1, drawn_img, image_name, render)
+        else:
+            warnings.warn("No valid images found to visualize.")
+            return
+
+    def show_video(self, **kwargs):
+
+        batch = self._get_batch(num_imgs=-1, **kwargs)
+        drawn_imgs, image_names = self._draw_images(batch, **kwargs)
+
+        if len(drawn_imgs) > 0:
+            return self._render_image_grid(len(drawn_imgs), drawn_imgs, image_names, render="mpy")
         else:
             warnings.warn("No valid images found to visualize.")
             return

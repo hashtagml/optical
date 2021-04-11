@@ -6,6 +6,7 @@ Created: Thursday, 8th April 2021
 import os
 import numpy as np
 from pathlib import Path
+import mediapy as media
 import textwrap
 import random
 import copy
@@ -155,6 +156,7 @@ def render_grid_mpl(
     rows: int,
     img_size: int,
     save_path: Optional[str] = None,
+    **kwargs,
 ):
     fig = plt.figure(
         figsize=(
@@ -186,6 +188,37 @@ def render_grid_mpl(
     plt.show()
 
 
+def render_grid_mpy(
+    drawn_imgs: List,
+    image_names: List,
+    num_imgs: int,
+    cols: int,
+    rows: int,
+    img_size: int,
+    save_path: Optional[str] = None,
+    **kwargs,
+):
+    if kwargs.get("show_image_name", None):
+        drawn_imgs = [np.array(add_name_strip(img, name)) for img, name in zip(drawn_imgs, image_names)]
+    fps = 1 if kwargs.get("show_image_name", None) is None else 1 / kwargs.get("show_image_name", 1.0)
+    return media.show_video(drawn_imgs, fps=fps)
+
+
+def add_name_strip(img: np.ndarray, name: str):
+    drawn_img = ImageOps.expand(img, border=IMAGE_BORDER, fill=(255, 255, 255))
+    name = name.split("/")[-1]
+    lines = textwrap.wrap(name, width=32)
+    y_text = IMAGE_BORDER // 2 if len(lines) <= 1 else 0
+    dimg = ImageDraw.Draw(drawn_img)
+    font = dimg.getfont()
+    w = drawn_img.size[0]
+    for line in lines:
+        width, height = font.getsize(line)
+        dimg.multiline_text(((w - width) // 2, y_text), line, font=font, fill=(0, 0, 0))
+        y_text += height
+    return drawn_img
+
+
 def render_grid_pil(
     drawn_imgs: List,
     image_names: List,
@@ -194,21 +227,12 @@ def render_grid_pil(
     rows: int,
     img_size: int,
     save_path: Optional[str] = None,
+    **kwargs,
 ):
     for i in range(len(drawn_imgs)):
         drawn_img = drawn_imgs[i]
         img_name = image_names[i]
-        drawn_img = ImageOps.expand(drawn_img, border=IMAGE_BORDER, fill=(255, 255, 255))
-        img_name = img_name.split("/")[-1]
-        lines = textwrap.wrap(img_name, width=32)
-        y_text = IMAGE_BORDER // 2 if len(lines) <= 1 else 0
-        dimg = ImageDraw.Draw(drawn_img)
-        font = dimg.getfont()
-        w = drawn_img.size[0]
-        for line in lines:
-            width, height = font.getsize(line)
-            dimg.multiline_text(((w - width) // 2, y_text), line, font=font, fill=(0, 0, 0))
-            y_text += height
+        drawn_img = add_name_strip(drawn_img, img_name)
         drawn_imgs[i] = drawn_img
 
     width = cols * (img_size + 2 * IMAGE_BORDER)
