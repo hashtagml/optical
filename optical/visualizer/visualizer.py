@@ -5,29 +5,41 @@ Created: Thursday, 8th April 2021
 """
 import math
 import os
-from random import shuffle
-from typing import Optional, Union
 import warnings
+from random import shuffle
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
-
 from joblib import Parallel, delayed
+from pandas.api.types import is_numeric_dtype
 
 from .utils import (
     Resizer,
+    check_df_cols,
     check_num_imgs,
     check_save_path,
+    get_class_color_map,
     plot_boxes,
     render_grid_mpl,
-    render_grid_pil,
     render_grid_mpy,
-    get_class_color_map,
-    check_df_cols,
+    render_grid_pil,
 )
 
 
 class Visualizer:
+    """Creates visualizer to visualze images with annotations by batch size, name and index.
+    Required dataframe of the dataset as input.Can show all images with annotations as a video.
+
+    Args:
+        images_dir (Union[str, os.PathLike]): Path to images in the dataset
+        dataframe (pd.DataFrame): Pandas dataframe which is created by ``optical.converter``. Must contain
+            ``["image_id", "x_min", "y_min", "width", "height", "category", "class_id"]`` columns.
+        split (Optional[str], optional): Split of the dataset to be visualized.
+        img_size (int, optional): Image size to resize and maintain uniformity. Defaults to 512.
+
+
+    """
+
     def __init__(
         self,
         images_dir: Union[str, os.PathLike],
@@ -35,12 +47,15 @@ class Visualizer:
         split: Optional[str] = None,
         img_size: int = 512,
     ):
+        # Check images dir and dataframe
         assert check_num_imgs(images_dir), f"No images found in {(images_dir)}, Please check."
         req_cols = ["image_id", "x_min", "y_min", "width", "height", "category", "class_id"]
         assert check_df_cols(
             dataframe.columns.to_list(), req_cols=req_cols
         ), f"Some required columns are not present in the dataframe.\
         Columns required for visualizing the annotations are {','.join(req_cols)}."
+
+        # Initialization
         self.images_dir = images_dir
         self.resize = (img_size, img_size)
         self.original_df = dataframe
@@ -48,6 +63,8 @@ class Visualizer:
             self.original_df = dataframe.query("split == @split").copy()
         self.filtered_df = self.original_df.copy()
         self.last_sequence = 0
+
+        # Initialize class map and color class map.
         self.class_map = pd.Series(
             self.original_df.class_id.values.astype(int), index=self.original_df.category
         ).to_dict()
@@ -56,11 +73,21 @@ class Visualizer:
         self.previous_batch = []
         self.previous_args = {}
 
-    def __getitem__(self, index, use_original):
+    def __getitem__(self, image_id: str, use_original: bool = False) -> Dict:
+        """Fetches images and annotations from the input dataframe.
+
+        Args:
+            image_id (str): Image Id to be fetched.
+            use_original (bool, optional): Whether to search image in original or filtered dataframe.
+                Defaults to False.
+
+        Returns:
+            Dict: Python dictionary containing queried image and annotation information.
+        """
         if use_original:
-            img_df = self.original_df[self.original_df["image_id"] == index]
+            img_df = self.original_df[self.original_df["image_id"] == image_id]
         else:
-            img_df = self.filtered_df[self.filtered_df["image_id"] == index]
+            img_df = self.filtered_df[self.filtered_df["image_id"] == image_id]
         img_bboxes = []
         scores = []
         for _, row in img_df.iterrows():
@@ -73,7 +100,7 @@ class Visualizer:
                 if "score" in row.keys():
                     scores.append(row["score"])
 
-        image_path = os.path.join(self.images_dir, index)
+        image_path = os.path.join(self.images_dir, image_id)
         img, anns = Resizer(self.resize)({"image_path": image_path, "anns": img_bboxes})
         item = {"img": {"image_name": image_path, "image": img}, "anns": anns}
         if len(scores) > 0:
@@ -89,8 +116,22 @@ class Visualizer:
         random: bool = True,
         do_filter: bool = False,
         **kwargs,
-    ):
+    ) -> List[Dict]:
+        """Fetches batch of images and annotations, applies filters if provided.
 
+        Args:
+            num_imgs (int, optional): Number of images and annotation to be fetched.
+                if it is ``-1`` all images and annotations in the dataset will be returned.
+                Defaults to 1.
+            index (Optional[int], optional): Index of the image to be fetched. Defaults to None.
+            name (Optional[str], optional): Name of the image to be fetched. Defaults to None.
+            random (bool, optional): If ``True`` randomly selects ``num_imgs`` images otherwise follows a sequence.
+                Defaults to True.
+            do_filter (bool, optional): Wether to apply filtering or not. Defaults to False.
+
+        Returns:
+            List[Dict]: List of images and annotations info.
+        """
         self.filtered_df = self._apply_filters(**kwargs) if do_filter else self.filtered_df
         unique_images = list(self.filtered_df.image_id.unique())
         use_original = False
@@ -135,10 +176,28 @@ class Visualizer:
         num_imgs: int = 9,
         previous: bool = False,
         save_path: Optional[str] = None,
-        render: str = "PIL",
+        render: str = "pil",
         random: bool = True,
         **kwargs,
-    ):
+    ) -> Any:
+        """Displays a batch of images based on input size.
+
+        Args:
+            num_imgs (int, optional): Number of images and their annotation to be visualized. Defaults to 9.
+            previous (bool, optional): If ``True`` just displays last batch. Defaults to False.
+            save_path (Optional[str], optional): Output path if images and annotations to be saved. Defaults to None.
+            render (str, optional): Rendering to be used. Available options are ``mpl``,``pil``,``mpy``.
+                If ``mpl``, uses ``matplotlib`` to display the images and annotations.
+                If ``pil``, uses ``Pillow`` to display the images and annotations.
+                If ``mpy``, uses ``mediapy`` to display as video
+                Defaults to "pil".
+            random (bool, optional): If ``True`` randomly selects ``num_imgs`` images otherwise follows a sequence.
+                Defaults to True.
+
+
+        Returns:
+            Any: Incase of Pillow or mediapy rendering IPython media object will be returned.
+        """
         if previous and len(self.previous_batch):
             batch = self.previous_batch
         else:
@@ -168,13 +227,32 @@ class Visualizer:
 
     def _render_image_grid(
         self,
-        num_imgs,
-        drawn_imgs,
-        image_names,
-        render: str = "mpl",
+        num_imgs: int,
+        drawn_imgs: List,
+        image_names: List[str],
+        render: str = "pil",
         save_path: Optional[str] = None,
         **kwargs,
-    ):
+    ) -> Any:
+        """Renders image and annotation grid based on given backend.
+
+        Args:
+            num_imgs (int): Number of images in the grid.
+            drawn_imgs (List): List of images with annotations.
+            image_names (List[str]): List of image names in the grid.
+            render (str, optional): Rendering to be used. Available options are ``mpl``,``pil``,``mpy``.
+                If ``mpl``, uses ``matplotlib`` to display the images and annotations.
+                If ``pil``, uses ``Pillow`` to display the images and annotations.
+                If ``mpy``, uses ``mediapy`` to display as video
+                Defaults to "pil".
+            save_path (Optional[str], optional): Output path if images and annotations to be saved. Defaults to None.
+
+        Raises:
+            RuntimeError: Raised if invalid rendering backend is given.
+
+        Returns:
+            Any: Incase of Pillow or mediapy rendering IPython media object will be returned.
+        """
 
         cols = 2 if num_imgs <= 6 else 3
         cols = 1 if num_imgs == 1 else cols
@@ -184,11 +262,19 @@ class Visualizer:
         elif render.lower() == "pil":
             return render_grid_pil(drawn_imgs, image_names, num_imgs, cols, rows, self.resize[0], save_path, **kwargs)
         elif render.lower() == "mpy":
-            return render_grid_mpy(drawn_imgs, image_names, num_imgs, cols, rows, self.resize[0], save_path, **kwargs)
+            return render_grid_mpy(drawn_imgs, image_names, **kwargs)
         else:
             raise RuntimeError("Invalid Image grid rendering format, should be either mpl or pil.")
 
-    def _draw_images(self, batch, **kwargs):
+    def _draw_images(self, batch: List[Dict], **kwargs) -> Tuple[List, List]:
+        """Draws annotations on the images.
+
+        Args:
+            batch (List[Dict]): List of images and annotations info.
+
+        Returns:
+            Tuple[List, List]: Tuple of drawn images and their respective image names.
+        """
         drawn_imgs = []
         image_names = []
         for img_ann_info in batch:
@@ -208,7 +294,17 @@ class Visualizer:
 
         return drawn_imgs, image_names
 
-    def _apply_filters(self, **kwargs):
+    def _apply_filters(self, **kwargs) -> pd.DataFrame:
+        """Applies filters on the original dataframe.
+
+        Keyword Args:
+            only_without_labels(bool): To filter images which do not have any annotations.
+            only_with_labels(bool): To filter only images which have annotations.
+            filter_categories(Union[str,List[]]): To filter annotations with given categories.
+
+        Returns:
+            pd.DataFrame: Filtered dataframe.
+        """
         if kwargs.get("only_without_labels", None):
             df = self.original_df[self.df["class_id"].isna() & self.df["category"].isna()]
             return df
@@ -236,7 +332,22 @@ class Visualizer:
         save_path: Optional[str] = None,
         render: str = "mpl",
         **kwargs,
-    ):
+    ) -> Any:
+        """Displays images with annotation given index or name.
+
+        Args:
+            index (int, optional): Index of the image to be fetched. Defaults to 0.
+            name (Optional[str], optional): Name of the image to be fetched. Defaults to None.
+            save_path (Optional[str], optional): Output path if images and annotations to be saved. Defaults to None.
+            render (str, optional): Rendering to be used. Available options are ``mpl``,``pil``,``mpy``.
+                If ``mpl``, uses ``matplotlib`` to display the images and annotations.
+                If ``pil``, uses ``Pillow`` to display the images and annotations.
+                If ``mpy``, uses ``mediapy`` to display as video
+                Defaults to "pil".
+
+        Returns:
+            Any: Incase of Pillow or mediapy rendering IPython media object will be returned.
+        """
         if name is not None:
             batch = self._get_batch(index=None, name=name, **kwargs)
         else:
@@ -248,18 +359,29 @@ class Visualizer:
             drawn_img[0].save(save_path)
 
         if len(drawn_img) > 0:
-            return self._render_image_grid(1, drawn_img, image_name, render)
+            return self._render_image_grid(1, drawn_img, image_name, render, **kwargs)
         else:
             warnings.warn("No valid images found to visualize.")
             return
 
-    def show_video(self, **kwargs):
+    def show_video(self, **kwargs) -> Any:
+        """Displays whole dataset as a video.
+
+        Keyword Args:
+            show_image_name(bool): Whether to show image names in the video or not.
+            image_time(float): How many seconds each should be displayed in the video.
+                e.g: ``image_time = 1`` means each image will be displayed for one second.
+                ``image_time = 0.5`` means each image will be displayed for half a second.
+
+        Returns:
+            Any: Returns IPython media object.
+        """
 
         batch = self._get_batch(num_imgs=-1, **kwargs)
         drawn_imgs, image_names = self._draw_images(batch, **kwargs)
 
         if len(drawn_imgs) > 0:
-            return self._render_image_grid(len(drawn_imgs), drawn_imgs, image_names, render="mpy")
+            return self._render_image_grid(len(drawn_imgs), drawn_imgs, image_names, render="mpy", **kwargs)
         else:
             warnings.warn("No valid images found to visualize.")
             return

@@ -19,6 +19,5 @@ COLORS = [
     "fuchsia",
     "purple",
     "black",
-    "gray",
     "silver",
 ]
