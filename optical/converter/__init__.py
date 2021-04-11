@@ -14,10 +14,12 @@ from .coco import Coco
 from .csv import Csv
 from .yolo import Yolo
 from .pascal import Pascal
-from .utils import get_image_dir, ifnone
+from .sagemaker import SageMaker
 from ..visualizer.visualizer import Visualizer
+from .utils import get_image_dir, ifnone
 
-SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
+
+SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "sagemaker": SageMaker, "pascal": Pascal}
 
 
 class Annotation:

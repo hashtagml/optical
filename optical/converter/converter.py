@@ -9,14 +9,14 @@ import os
 import warnings
 from pathlib import Path, PosixPath
 from typing import Dict, List, Optional, Union
-
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
-
-from .utils import copyfile, ifnone, write_coco_json, write_xml
+import json
+from .utils import copyfile, ifnone, write_coco_json, get_id_to_class_map, write_xml
 
 
 class LabelEncoder:
@@ -58,7 +58,7 @@ def convert_yolo(
     root: Union[str, os.PathLike, PosixPath],
     has_image_split: bool = False,
     copy_images: bool = False,
-    save_under: str = "labels",
+    save_under: str = "annotations",
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
     """converts to yolo from master dataframe
@@ -250,7 +250,6 @@ def convert_coco(
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ) -> None:
     """converts to coco from master df
-
     Args:
         df (pd.DataFrame): the master df
         root (Union[str, os.PathLike, PosixPath]): root directory of the source format
@@ -297,6 +296,103 @@ def convert_coco(
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
+            _fastcopy(src_dir, dest_dir, images)
+
+
+def _make_manifest_data(image_info: List, grouped_info: pd.DataFrame, job_name: str, id_to_class_map: Dict):
+    # creating json like data for each row of df
+    manifest_dic = {}
+    manifest_dic["source-ref"] = image_info[0]
+    manifest_dic[f"{job_name}"] = {
+        "image_size": [{"width": int(image_info[1]), "depth": 3, "height": int(image_info[2])}],
+    }
+    manifest_dic[f"{job_name}-metadata"] = {
+        "job-name": job_name,
+        "class-map": id_to_class_map,
+        "creation-date": str(datetime.now()),
+        "type": "groundtruth/object-detection",
+    }
+    annotations = []
+    for idx, row_info in grouped_info.iterrows():
+        annotations.append(
+            {
+                "class_id": int(row_info["class_id"]),
+                "width": int(row_info["width"]),
+                "height": int(row_info["height"]),
+                "top": int(row_info["y_min"]),
+                "left": int(row_info["x_min"]),
+            }
+        )
+    # append annotations
+    manifest_dic[f"{job_name}"]["annotations"] = annotations
+
+    return manifest_dic
+
+
+def convert_sagemaker(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    has_image_split: bool = False,
+    copy_images: bool = False,
+    save_under: str = "annotations",
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+    job_name: str = "optical",
+):
+    """converts to sagemaker from master dataframe
+
+    Args:
+        df (pd.DataFrame): the master df
+        root (Union[str, os.PathLike, PosixPath]): root directory of the source format
+        has_image_split (bool, optional): If the images are arranged under the splits. Defaults to False.
+        copy_images (bool, optional): Whether to copy the images to a different directory. Defaults to False.
+        save_under (str, optional): Name of the folder to save the target annotations. Defaults to "labels".
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): Output directory for the target
+            annotation. Defaults to ``None``.
+        job_name(Optional[str]): manifest job name for the output file. Defaults to optical
+    """
+
+    output_dir = ifnone(output_dir, root, Path)
+    output_labeldir = output_dir / f"{save_under}"
+    output_imagedir = output_dir / "images"
+    output_labeldir.mkdir(parents=True, exist_ok=True)
+
+    splits = df.split.unique().tolist()
+    for split in splits:
+        output_subdir = output_labeldir / split
+        output_subdir.mkdir(parents=True, exist_ok=True)
+
+        split_df = df.query("split == @split").copy()
+
+        # drop images missing width or height information
+        hw_missing = split_df[pd.isnull(split_df["image_width"]) | pd.isnull(split_df["image_height"])]
+        if len(hw_missing) > 0:
+            warnings.warn(
+                f"{hw_missing['image_id'].nunique()} has height/width information missing in split `{split}`. "
+                + f"{len(hw_missing)} annotations will be removed."
+            )
+
+        split_df = split_df[pd.notnull(split_df["image_width"]) & pd.notnull(split_df["image_height"])]
+
+        id_to_class_map = get_id_to_class_map(split_df)
+        grouped_split_df = split_df.groupby(["image_id", "width", "height"])
+
+        with open(os.path.join(output_subdir, f"{split}.manifest"), "w") as f:
+
+            for image_info, grouped_info in tqdm(
+                grouped_split_df, total=grouped_split_df.ngroups, desc=f"split: {split}"
+            ):
+                manifest_dic = _make_manifest_data(image_info, grouped_info, job_name, id_to_class_map)
+
+                f.write(json.dumps(manifest_dic) + "\n")
+
+        if copy_images:
+            src_dir = Path(root).joinpath("images")
+            if has_image_split:
+                src_dir = src_dir.joinpath(split)
+            dest_dir = output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            images = split_df["image_id"].unique().tolist()
             _fastcopy(src_dir, dest_dir, images)
 
 

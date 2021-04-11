@@ -57,6 +57,12 @@ def get_annotation_dir(root: Union[str, os.PathLike]):
     return Path(root) / "annotations"
 
 
+def find_job_metadata_key(json_data: Dict):
+    for key in json_data.keys():
+        if key.split("-")[-1] == "metadata":
+            return key
+
+
 def exists(path: Union[str, os.PathLike]):
     if Path(path).is_dir():
         return "dir"
@@ -180,3 +186,16 @@ def write_xml(
     f_name = Path(output_dir).joinpath(df.iloc[0]["split"], Path(df.iloc[0]["image_id"]).stem + ".xml")
     with open(f_name, "wb") as files:
         tree.write(files, pretty_print=True)
+
+
+def get_id_to_class_map(df: pd.DataFrame):
+    """This function return the class_id to class name mapping
+
+    Args:
+        df (pd.DataFrame): master dataframe
+
+    Returns:
+        Dict: mapping dictionary
+    """
+    values = pd.unique(df[["class_id", "category"]].values.ravel())
+    return dict(zip(values[0::2], values[1::2]))

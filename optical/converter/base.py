@@ -10,7 +10,7 @@ from typing import Optional
 import altair as alt
 import pandas as pd
 
-from .converter import convert_coco, convert_csv, convert_yolo, convert_pascal
+from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo
 from .utils import filter_split_category
 
 
@@ -89,7 +89,12 @@ class FormatSpec(ABC):
         return df
 
     def convert(
-        self, to: str, output_dir: Optional[str] = None, save_under: Optional[str] = None, copy_images: bool = False
+        self,
+        to: str,
+        output_dir: Optional[str] = None,
+        save_under: str = "labels",
+        copy_images: bool = False,
+        **kwargs,
     ):
         if to.lower() == "yolo":
             return convert_yolo(
@@ -128,4 +133,12 @@ class FormatSpec(ABC):
                 copy_images=copy_images,
             )
         if to.lower() == "sagemaker":
-            pass
+            return convert_sagemaker(
+                self.master_df,
+                self.root,
+                has_image_split=self._has_image_split,
+                copy_images=copy_images,
+                save_under=save_under,
+                output_dir=output_dir,
+                **kwargs,
+            )
