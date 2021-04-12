@@ -8,6 +8,7 @@ import os
 import warnings
 from pathlib import Path
 from typing import Union
+import numpy as np
 
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -56,8 +57,8 @@ class Pascal(FormatSpec):
                 img_height = root.find("size").find("height").text
                 for obj in root.findall("object"):
                     cls_name = obj.find("name").text
-                    x_min = obj.find("bndbox").find("xmin").text
-                    y_min = obj.find("bndbox").find("ymin").text
+                    x_min = int(obj.find("bndbox").find("xmin").text)
+                    y_min = int(obj.find("bndbox").find("ymin").text)
                     box_width = int(obj.find("bndbox").find("xmax").text) - int(x_min)
                     box_height = int(obj.find("bndbox").find("ymax").text) - int(y_min)
                     img_filenames.append(img_filename)
@@ -99,4 +100,9 @@ class Pascal(FormatSpec):
                 "split",
             ],
         )
+        for col in ["x_min", "y_min", "width", "height"]:
+            master_df[col] = master_df[col].astype(np.float32)
+        for col in ["image_width", "image_height"]:
+            master_df[col] = master_df[col].astype(np.int32)
+
         self.master_df = master_df

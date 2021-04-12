@@ -323,10 +323,10 @@ def write_xml(
     size = xml.Element("size")
     root.append(size)
     width = xml.Element("width")
-    width.text = df.iloc[0]["image_width"]
+    width.text = str(df.iloc[0]["image_width"])
     size.append(width)
     height = xml.Element("height")
-    height.text = df.iloc[0]["image_height"]
+    height.text = str(df.iloc[0]["image_height"])
     size.append(height)
     depth = xml.Element("depth")
     depth.text = "3"
@@ -384,6 +384,7 @@ def convert_pascal(
         root (Union[str, os.PathLike, PosixPath]): root directory for data
         output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory. Defaults to None.
     """
+    df = copy.deepcopy(df)
     df["x_max"] = df["x_min"] + df["width"]
     df["y_max"] = df["y_min"] + df["height"]
     df.drop(["width", "height"], axis=1, inplace=True)
@@ -391,7 +392,7 @@ def convert_pascal(
     for col in ("x_min", "y_min", "x_max", "y_max"):
         df[col] = df[col].astype(np.int32)
 
-    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
+    output_dir = ifnone(output_dir, Path(root) / "pascal" / "annotations", Path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     splits = df.split.unique().tolist()
