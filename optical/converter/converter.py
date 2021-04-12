@@ -15,6 +15,7 @@ import pandas as pd
 import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
+from lxml import etree as xml
 
 from .utils import copyfile, ifnone, write_coco_json
 
@@ -266,7 +267,6 @@ def convert_coco(
     output_labeldir = output_dir / f"{save_under}"
     output_imagedir = output_dir / "images"
     output_labeldir.mkdir(parents=True, exist_ok=True)
-
     splits = df.split.unique().tolist()
 
     for split in splits:
@@ -298,3 +298,109 @@ def convert_coco(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
+        output_subdir = output_dir / split
+        output_subdir.mkdir(parents=True, exist_ok=True)
+
+def write_xml(
+    df: pd.DataFrame,
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+    root = xml.Element("annotation")
+    folder = xml.Element("folder")
+    folder.text = ""
+    root.append(folder)
+    filename = xml.Element("filename")
+    filename.text = df.iloc[0]["image_id"]
+    root.append(filename)
+    path = xml.Element("path")
+    path.text = "././images/" + df.iloc[0]["split"] + "/" + df.iloc[0]["image_id"]
+    root.append(path)
+    source = xml.Element("source")
+    root.append(source)
+    database = xml.Element("database")
+    database.text = "UNKNOWN"
+    source.append(database)
+    size = xml.Element("size")
+    root.append(size)
+    width = xml.Element("width")
+    width.text = df.iloc[0]["image_width"]
+    size.append(width)
+    height = xml.Element("height")
+    height.text = df.iloc[0]["image_height"]
+    size.append(height)
+    depth = xml.Element("depth")
+    depth.text = "3"
+    size.append(depth)
+    segmented = xml.Element("segmented")
+    segmented.text = "0"
+    root.append(segmented)
+    for _, objec in df.iterrows():
+        obj = xml.Element("object")
+        root.append(obj)
+        name = xml.Element("name")
+        name.text = objec["category"]
+        obj.append(name)
+        pose = xml.Element("pose")
+        pose.text = "Unspecified"
+        obj.append(pose)
+        truncated = xml.Element("truncated")
+        truncated.text = "0"
+        obj.append(truncated)
+        difficult = xml.Element("difficult")
+        difficult.text = "0"
+        obj.append(difficult)
+        occluded = xml.Element("occluded")
+        occluded.text = "0"
+        obj.append(occluded)
+        bndbox = xml.Element("bndbox")
+        obj.append(bndbox)
+        xmin = xml.Element("xmin")
+        xmin.text = str(objec["x_min"])
+        bndbox.append(xmin)
+        xmax = xml.Element("xmax")
+        xmax.text = str(objec["x_max"])
+        bndbox.append(xmax)
+        ymin = xml.Element("ymin")
+        ymin.text = str(objec["y_min"])
+        bndbox.append(ymin)
+        ymax = xml.Element("ymax")
+        ymax.text = str(objec["y_max"])
+        bndbox.append(ymax)
+    tree = xml.ElementTree(root)
+    f_name = str(output_dir) + "/" + df.iloc[0]["split"] + "/" + df.iloc[0]["image_id"].split(".jpg")[0] + ".xml"
+    with open(f_name, "wb") as files:
+        tree.write(files, pretty_print=True)
+
+
+def convert_pascal(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+    """convert pascal from Master df
+
+    Args:
+        df (pd.DataFrame): master dataframe
+        root (Union[str, os.PathLike, PosixPath]): root directory for data
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory. Defaults to None.
+    """
+    df["x_max"] = df["x_min"] + df["width"]
+    df["y_max"] = df["y_min"] + df["height"]
+    df.drop(["width", "height"], axis=1, inplace=True)
+
+    for col in ("x_min", "y_min", "x_max", "y_max"):
+        df[col] = df[col].astype(np.int32)
+
+    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    splits = df.split.unique().tolist()
+
+    for split in splits:
+        output_subdir = output_dir / split
+        output_subdir.mkdir(parents=True, exist_ok=True)
+
+    images = df["image_id"].unique()
+    for image in images:
+        image_df = df.loc[lambda s: s["image_id"] == image]
+        write_xml(image_df, output_dir)
