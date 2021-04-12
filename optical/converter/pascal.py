@@ -22,10 +22,7 @@ class Pascal(FormatSpec):
         self.root = root
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
-<<<<<<< HEAD
-=======
         self._has_image_split = False
->>>>>>> initial commit for pascal
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()
@@ -35,12 +32,9 @@ class Pascal(FormatSpec):
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
         ann_splits = [x.name for x in Path(self._annotation_dir).iterdir() if x.is_dir()]
 
-<<<<<<< HEAD
-=======
         if im_splits:
             self._has_image_split = True
 
->>>>>>> initial commit for pascal
         no_anns = set(im_splits).difference(ann_splits)
         if no_anns:
             warnings.warn(f"no annotation found for {','.join(list(no_anns))}")
@@ -67,13 +61,8 @@ class Pascal(FormatSpec):
                 img_height = root.find("size").find("height").text
                 for obj in root.findall("object"):
                     cls_name = obj.find("name").text
-<<<<<<< HEAD
                     x_min = int(obj.find("bndbox").find("xmin").text)
                     y_min = int(obj.find("bndbox").find("ymin").text)
-=======
-                    x_min = obj.find("bndbox").find("xmin").text
-                    y_min = obj.find("bndbox").find("ymin").text
->>>>>>> initial commit for pascal
                     box_width = int(obj.find("bndbox").find("xmax").text) - int(x_min)
                     box_height = int(obj.find("bndbox").find("ymax").text) - int(y_min)
                     img_filenames.append(img_filename)
@@ -85,11 +74,8 @@ class Pascal(FormatSpec):
                     box_widths.append(box_width)
                     box_heights.append(box_height)
                     splits.append(split)
-<<<<<<< HEAD
-        class_dict = dict(zip(set(cls_names), [i for i in range(1,len(set(cls_names))+1)]))
-=======
+
         class_dict = dict(zip(set(cls_names), [i for i in range(1, len(set(cls_names)) + 1)]))
->>>>>>> initial commit for pascal
         class_ids = [class_dict[cate] for cate in cls_names]
         master_df = pd.DataFrame(
             list(
@@ -121,10 +107,6 @@ class Pascal(FormatSpec):
         )
         for col in ["x_min", "y_min", "width", "height"]:
             master_df[col] = master_df[col].astype(np.float32)
-<<<<<<< HEAD
-=======
-
->>>>>>> initial commit for pascal
         for col in ["image_width", "image_height"]:
             master_df[col] = master_df[col].astype(np.int32)
 

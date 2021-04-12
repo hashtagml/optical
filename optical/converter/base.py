@@ -110,9 +110,6 @@ class FormatSpec(ABC):
                 output_dir=output_dir,
             )
         if to.lower() == "pascal":
-<<<<<<< HEAD
-            return convert_pascal(self.master_df, self.root, output_dir)
-=======
             return convert_pascal(
                 self.master_df,
                 self.root,
@@ -121,7 +118,6 @@ class FormatSpec(ABC):
                 save_under=save_under,
                 copy_images=copy_images,
             )
->>>>>>> initial commit for pascal
         if to.lower() == "csv":
             return convert_csv(
                 self.master_df,

@@ -298,19 +298,11 @@ def convert_coco(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
-<<<<<<< HEAD
-        output_subdir = output_dir / split
-        output_subdir.mkdir(parents=True, exist_ok=True)
-
-def write_xml(
-    df: pd.DataFrame,
-=======
 
 
 def write_xml(
     df: pd.DataFrame,
     image_root: Union[str, os.PathLike, PosixPath],
->>>>>>> initial commit for pascal
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
     root = xml.Element("annotation")
@@ -321,11 +313,7 @@ def write_xml(
     filename.text = df.iloc[0]["image_id"]
     root.append(filename)
     path = xml.Element("path")
-<<<<<<< HEAD
-    path.text = "././images/" + df.iloc[0]["split"] + "/" + df.iloc[0]["image_id"]
-=======
     path.text = str(Path(image_root) / "images" / df.iloc[0]["split"] / df.iloc[0]["image_id"])
->>>>>>> initial commit for pascal
     root.append(path)
     source = xml.Element("source")
     root.append(source)
@@ -379,12 +367,8 @@ def write_xml(
         ymax.text = str(objec["y_max"])
         bndbox.append(ymax)
     tree = xml.ElementTree(root)
-<<<<<<< HEAD
-    f_name = str(output_dir) + "/" + df.iloc[0]["split"] + "/" + df.iloc[0]["image_id"].split(".jpg")[0] + ".xml"
-=======
     f_name = Path(output_dir).joinpath(df.iloc[0]["split"], Path(df.iloc[0]["image_id"]).stem + ".xml")
     # f_name = Path(output_dir) / df.iloc[0]["split"] / f"{df.iloc[0]["image_id"].split(".jpg")[0]}.xml"
->>>>>>> initial commit for pascal
     with open(f_name, "wb") as files:
         tree.write(files, pretty_print=True)
 
@@ -392,12 +376,9 @@ def write_xml(
 def convert_pascal(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-<<<<<<< HEAD
-=======
     has_image_split: bool = False,
     copy_images: bool = False,
     save_under: Optional[str] = None,
->>>>>>> initial commit for pascal
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
     """convert pascal from Master df
@@ -407,15 +388,12 @@ def convert_pascal(
         root (Union[str, os.PathLike, PosixPath]): root directory for data
         output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory. Defaults to None.
     """
-<<<<<<< HEAD
-=======
     output_dir = ifnone(output_dir, root, Path)
     save_under = ifnone(save_under, "pascal")
     output_dir = output_dir / save_under
     output_imagedir = output_dir / "images"
     output_dir.mkdir(parents=True, exist_ok=True)
 
->>>>>>> initial commit for pascal
     df = copy.deepcopy(df)
     df["x_max"] = df["x_min"] + df["width"]
     df["y_max"] = df["y_min"] + df["height"]
@@ -423,25 +401,18 @@ def convert_pascal(
 
     for col in ("x_min", "y_min", "x_max", "y_max"):
         df[col] = df[col].astype(np.int32)
-
-<<<<<<< HEAD
     output_dir = ifnone(output_dir, Path(root) / "pascal" / "annotations", Path)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-=======
->>>>>>> initial commit for pascal
     splits = df.split.unique().tolist()
 
     for split in splits:
         output_subdir = output_dir / split
         output_subdir.mkdir(parents=True, exist_ok=True)
-<<<<<<< HEAD
 
     images = df["image_id"].unique()
     for image in images:
         image_df = df.loc[lambda s: s["image_id"] == image]
         write_xml(image_df, output_dir)
-=======
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
         for image in images:
@@ -455,4 +426,3 @@ def convert_pascal(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
->>>>>>> initial commit for pascal
