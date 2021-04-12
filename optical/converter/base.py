@@ -10,8 +10,9 @@ from typing import Optional
 import altair as alt
 import pandas as pd
 
-from .utils import filter_split_category
+
 from .converter import convert_csv, convert_yolo
+from .utils import filter_split_category
 
 
 class FormatSpec(ABC):
