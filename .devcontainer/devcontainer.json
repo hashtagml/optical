@@ -77,5 +77,8 @@
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "pip3 install --user -r requirements.txt",
     // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE},target=/data/,type=bind,consistency=cached"
+    ],
     "remoteUser": "vscode"
 }
