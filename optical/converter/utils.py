@@ -6,10 +6,10 @@ Created: Sunday, 28th March 2021
 
 import json
 import os
-import warnings
 import shutil
+import warnings
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import pandas as pd
 
@@ -81,6 +81,11 @@ def filter_split_category(df: pd.DataFrame, split: Optional[str] = None, categor
         df = df.query("category == @category")
 
     return df
+
+
+def write_coco_json(coco_dict: Dict, filename: Union[str, os.PathLike]):
+    with open(filename, "w") as f:
+        json.dump(coco_dict, f, indent=2)
 
 
 def copyfile(
