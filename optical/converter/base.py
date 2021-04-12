@@ -11,7 +11,7 @@ import altair as alt
 import pandas as pd
 
 from .utils import filter_split_category
-from .converter import convert_csv, convert_yolo
+from .converter import convert_coco, convert_csv, convert_yolo
 
 
 class FormatSpec(ABC):
@@ -91,7 +91,7 @@ class FormatSpec(ABC):
     def convert(
         self, to: str, output_dir: Optional[str] = None, save_under: str = "labels", copy_images: bool = False
     ):
-        print(copy_images)
+        # print(copy_images)
         if to.lower() == "yolo":
             return convert_yolo(
                 self.master_df,
@@ -102,7 +102,14 @@ class FormatSpec(ABC):
                 output_dir=output_dir,
             )
         if to.lower() == "coco":
-            pass
+            return convert_coco(
+                self.master_df,
+                self.root,
+                has_image_split=self._has_image_split,
+                copy_images=copy_images,
+                save_under=save_under,
+                output_dir=output_dir,
+            )
         if to.lower() == "pascal":
             pass
         if to.lower() == "csv":
