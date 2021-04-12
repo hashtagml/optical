@@ -13,6 +13,7 @@ from .yolo import Yolo
 from .pascal import Pascal
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
+from .pascal import Pascal
 
 SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
 
