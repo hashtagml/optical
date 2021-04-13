@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import warnings
+
 from pathlib import Path, PosixPath
 from typing import Any, Callable, Dict, Optional, Union
 
@@ -100,6 +101,7 @@ def copyfile(
         shutil.copyfile(filename, dest)
     except FileNotFoundError:
         pass
+
 
 
 def write_xml(

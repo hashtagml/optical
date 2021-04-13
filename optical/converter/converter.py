@@ -266,6 +266,7 @@ def convert_coco(
     output_labeldir = output_dir / f"{save_under}"
     output_imagedir = output_dir / "images"
     output_labeldir.mkdir(parents=True, exist_ok=True)
+
     splits = df.split.unique().tolist()
 
     for split in splits:
@@ -297,6 +298,7 @@ def convert_coco(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
+
 
 
 def convert_pascal(
@@ -353,3 +355,4 @@ def convert_pascal(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
+
