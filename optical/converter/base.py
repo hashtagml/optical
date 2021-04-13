@@ -89,9 +89,8 @@ class FormatSpec(ABC):
         return df
 
     def convert(
-        self, to: str, output_dir: Optional[str] = None, save_under: str = "labels", copy_images: bool = False
+        self, to: str, output_dir: Optional[str] = None, save_under: Optional[str] = None, copy_images: bool = False
     ):
-        # print(copy_images)
         if to.lower() == "yolo":
             return convert_yolo(
                 self.master_df,
@@ -113,6 +112,13 @@ class FormatSpec(ABC):
         if to.lower() == "pascal":
             pass
         if to.lower() == "csv":
-            return convert_csv(self.master_df, self.root, output_dir)
+            return convert_csv(
+                self.master_df,
+                self.root,
+                has_image_split=self._has_image_split,
+                output_dir=output_dir,
+                save_under=save_under,
+                copy_images=copy_images,
+            )
         if to.lower() == "sagemaker":
             pass
