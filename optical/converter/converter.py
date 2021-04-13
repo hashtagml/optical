@@ -300,7 +300,6 @@ def convert_coco(
             _fastcopy(src_dir, dest_dir, images)
 
 
-
 def convert_pascal(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
@@ -355,4 +354,3 @@ def convert_pascal(
             dest_dir.mkdir(parents=True, exist_ok=True)
 
             _fastcopy(src_dir, dest_dir, images)
-

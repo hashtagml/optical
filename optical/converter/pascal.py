@@ -18,7 +18,6 @@ from .base import FormatSpec
 from .utils import exists, get_image_dir, get_annotation_dir
 
 
-
 class Pascal(FormatSpec):
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root

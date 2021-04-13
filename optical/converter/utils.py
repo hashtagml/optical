@@ -103,7 +103,6 @@ def copyfile(
         pass
 
 
-
 def write_xml(
     df: pd.DataFrame,
     image_root: Union[str, os.PathLike, PosixPath],
