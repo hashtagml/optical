@@ -5,7 +5,7 @@ authors = [
   "Aman G <amangupta0044@gmail.com>",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
@@ -20,7 +20,8 @@ classifiers = [
 ]
 description = "Utilities for vision related tasks"
 homepage = "https://github.com/hashtagml/optical"
-include = ["MANIFEST.in", "CONTRIBUTING.md"]
+include = ["MANIFEST.in", "CONTRIBUTING.md", "LICENSE"]
+keywords = ["computer vision", "deep learning", "object detection"]
 license = "MIT"
 name = "optical"
 readme = "README.md"
