@@ -18,7 +18,6 @@ from .utils import get_image_dir, ifnone
 SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
 
 
-
 class Annotation:
     def __init__(self, root: str, format: str):
         if format.lower() not in SUPPORTED_FORMATS:
