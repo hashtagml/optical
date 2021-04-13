@@ -45,10 +45,10 @@ def check_df_cols(df_cols: List, req_cols: List) -> bool:
 
 class Resizer(object):
     """Rescale the image in a sample to a given size.
+
     Args:
-        output_size (tuple or int): Desired output size. If tuple, output is
-            matched to output_size. If int, smaller of image edges is matched
-            to output_size keeping aspect ratio the same.
+        output_size (tuple or int): Desired output size. If tuple, output is matched to output_size. If int, smaller
+         of image edges is matched to output_size keeping aspect ratio the same.
     """
 
     def __init__(self, expected_size: Tuple = (512, 512)):
