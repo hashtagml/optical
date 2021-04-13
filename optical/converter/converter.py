@@ -74,6 +74,7 @@ def convert_yolo(
     """
 
     output_dir = ifnone(output_dir, root, Path)
+    save_under = ifnone(save_under, "yolo")
     output_labeldir = output_dir / f"{save_under}"
     output_imagedir = output_dir / "images"
     output_labeldir.mkdir(parents=True, exist_ok=True)
@@ -151,8 +152,18 @@ def convert_yolo(
 def convert_csv(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
+    has_image_split: bool = False,
+    copy_images: bool = False,
+    save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
+
+    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
+    save_under = ifnone(save_under, "csv")
+    output_dir = output_dir / save_under
+    print(output_dir)
+    output_imagedir = output_dir / "images"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     df = copy.deepcopy(df)
     df["x_max"] = df["x_min"] + df["width"]
@@ -161,15 +172,26 @@ def convert_csv(
     for col in ("x_min", "y_min", "x_max", "y_max"):
         df[col] = df[col].astype(np.int32)
 
-    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     splits = df.split.unique().tolist()
 
     for split in splits:
-        split_df = df.query("split == @split")
+        split_df = df.query("split == @split").copy()
         split_df.drop(["split"], axis=1, inplace=True)
+        split_df = split_df[
+            ["image_id", "image_width", "image_height", "x_min", "y_min", "x_max", "y_max", "category"]
+        ]
         split_df.to_csv(output_dir.joinpath(f"{split}.csv"), index=False)
+
+        image_ids = split_df["image_id"].unique().tolist()
+
+        if copy_images:
+            src_dir = Path(root).joinpath("images")
+            if has_image_split:
+                src_dir = src_dir.joinpath(split)
+            dest_dir = output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            _fastcopy(src_dir, dest_dir, image_ids)
 
 
 def _make_coco_images(df: pd.DataFrame, image_map: Dict) -> List:
@@ -187,6 +209,8 @@ def _make_coco_images(df: pd.DataFrame, image_map: Dict) -> List:
 
 
 def _make_coco_annotations(df: pd.DataFrame, image_map: Dict) -> List:
+    """makes annotation list for coco"""
+
     df = copy.deepcopy(df)
     df["bbox"] = df[["x_min", "y_min", "width", "height"]].apply(list, axis=1)
     df["area"] = df["height"] * df["width"]
@@ -203,6 +227,8 @@ def _make_coco_annotations(df: pd.DataFrame, image_map: Dict) -> List:
 
 
 def _make_coco_categories(df: pd.DataFrame) -> List:
+    """makes category list for coco"""
+
     df = copy.deepcopy(df)
     df = (
         df.drop_duplicates(subset=["category"], keep="first")
@@ -220,7 +246,7 @@ def convert_coco(
     root: Union[str, os.PathLike, PosixPath],
     has_image_split: bool = False,
     copy_images: bool = False,
-    save_under: str = "labels",
+    save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ) -> None:
     """converts to coco from master df
@@ -236,6 +262,7 @@ def convert_coco(
     """
 
     output_dir = ifnone(output_dir, root, Path)
+    save_under = ifnone(save_under, "coco")
     output_labeldir = output_dir / f"{save_under}"
     output_imagedir = output_dir / "images"
     output_labeldir.mkdir(parents=True, exist_ok=True)
