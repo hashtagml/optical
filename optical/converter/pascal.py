@@ -70,7 +70,7 @@ class Pascal(FormatSpec):
                     box_widths.append(box_width)
                     box_heights.append(box_height)
                     splits.append(split)
-        class_dict = dict(zip(set(cls_names), [i for i in range(len(set(cls_names)))]))
+        class_dict = dict(zip(set(cls_names), [i for i in range(1,len(set(cls_names))+1)]))
         class_ids = [class_dict[cate] for cate in cls_names]
         master_df = pd.DataFrame(
             list(
