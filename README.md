@@ -1,6 +1,11 @@
 # Optical
 
-
+![Python Version](https://img.shields.io/pypi/pyversions/optical)
+[![Documentation Status](https://readthedocs.org/projects/optical/badge/?version=latest)](https://optical.readthedocs.io/en/latest/?badge=latest)
+![GitHub all releases](https://img.shields.io/github/downloads/hashtagml/optical/total)
+![PyPI - License](https://img.shields.io/pypi/l/optical)
+![PyPI](https://img.shields.io/pypi/v/optical?color=darkgreen)
+![GitHub contributors](https://img.shields.io/github/contributors/hashtagml/optical?color=orange)
 <p align="center"><img align="centre" src="assets/optical_b.png" alt="logo" width = "650"></p>
 
 A collection of utilities for ML vision related tasks.
