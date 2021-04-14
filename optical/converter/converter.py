@@ -336,11 +336,6 @@ def convert_pascal(
     for split in splits:
         output_subdir = output_dir / split
         output_subdir.mkdir(parents=True, exist_ok=True)
-
-    images = df["image_id"].unique()
-    for image in images:
-        image_df = df.loc[lambda s: s["image_id"] == image]
-        write_xml(image_df, output_dir)
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
         for image in images:
