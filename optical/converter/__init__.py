@@ -19,6 +19,7 @@ from ..visualizer.visualizer import Visualizer
 
 SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
 
+
 class Annotation:
     def __init__(self, root: str, format: str):
         if format.lower() not in SUPPORTED_FORMATS:
