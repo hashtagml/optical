@@ -23,6 +23,7 @@ from .config import COLORS, IMAGE_BORDER, IMAGE_EXT
 
 def check_num_imgs(images_dir: Union[str, os.PathLike]) -> int:
     """Checks number of images in given directory"""
+    images_dir = Path(images_dir)
     file_counts = collections.Counter(p.suffix for p in images_dir.iterdir())
     return sum([file_counts.get(ext, 0) for ext in IMAGE_EXT])
 

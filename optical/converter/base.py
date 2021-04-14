@@ -10,7 +10,7 @@ from typing import Optional
 import altair as alt
 import pandas as pd
 
-from .converter import convert_coco, convert_csv, convert_yolo
+from .converter import convert_coco, convert_csv, convert_yolo, convert_pascal
 from .utils import filter_split_category
 
 
@@ -110,7 +110,14 @@ class FormatSpec(ABC):
                 output_dir=output_dir,
             )
         if to.lower() == "pascal":
-            pass
+            return convert_pascal(
+                self.master_df,
+                self.root,
+                has_image_split=self._has_image_split,
+                output_dir=output_dir,
+                save_under=save_under,
+                copy_images=copy_images,
+            )
         if to.lower() == "csv":
             return convert_csv(
                 self.master_df,

@@ -5,15 +5,19 @@ Created: Sunday, 28th March 2021
 """
 
 import os
+import random
+from pathlib import Path
 from typing import Optional, Union
+import warnings
 
 from .coco import Coco
 from .csv import Csv
 from .yolo import Yolo
-from ..visualizer.visualizer import Visualizer
+from .pascal import Pascal
 from .utils import get_image_dir, ifnone
+from ..visualizer.visualizer import Visualizer
 
-SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo}
+SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
 
 
 class Annotation:
@@ -58,5 +62,17 @@ class Annotation:
         split: Optional[str] = None,
         img_size: Optional[int] = 512,
     ):
-        images_dir = ifnone(images_dir, get_image_dir(self.root))
+        if images_dir is None:
+            random_split = random.choice(list(self.formatspec.master_df.split.unique()))
+            if split is None:
+                split = random_split
+                warnings.warn(
+                    f"Since there is not split specified explicitly, {split} has been selected randomly."
+                    + "Please pass split argument if you want to visualize different split."
+                )
+            if self.formatspec._has_image_split:
+                images_dir = get_image_dir(self.root) / split
+            else:
+                images_dir = get_image_dir(self.root)
+        images_dir = Path(images_dir)
         return Visualizer(images_dir, self.formatspec.master_df, split, img_size)
