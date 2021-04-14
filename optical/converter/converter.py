@@ -16,7 +16,7 @@ import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
 
-from .utils import copyfile, ifnone, write_coco_json
+from .utils import copyfile, ifnone, write_coco_json, write_xml
 
 
 class LabelEncoder:
@@ -290,6 +290,62 @@ def convert_coco(
         print(output_file)
         write_coco_json(coco_dict, output_file)
 
+        if copy_images:
+            src_dir = Path(root).joinpath("images")
+            if has_image_split:
+                src_dir = src_dir.joinpath(split)
+            dest_dir = output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            _fastcopy(src_dir, dest_dir, images)
+
+
+def convert_pascal(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    has_image_split: bool = False,
+    copy_images: bool = False,
+    save_under: Optional[str] = None,
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+    """convert to pascal from Masterdf
+
+    Args:
+        df (pd.DataFrame): the master df
+        root (Union[str, os.PathLike, PosixPath]): root directory of the source format
+        has_image_split (bool, optional):  If the images are arranged under the splits. Defaults to False.
+        copy_images (bool, optional):  Whether to copy the images to a different directory. Defaults to False.
+        save_under (Optional[str], optional):  Name of the folder to save the target annotations. Defaults to "labels".
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional):  Output directory for the target
+    """
+    output_dir = ifnone(output_dir, root, Path)
+    save_under = ifnone(save_under, "pascal")
+    output_dir = output_dir / save_under
+    output_imagedir = output_dir / "images"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    df = copy.deepcopy(df)
+    df["x_max"] = df["x_min"] + df["width"]
+    df["y_max"] = df["y_min"] + df["height"]
+    df.drop(["width", "height"], axis=1, inplace=True)
+
+    for col in ("x_min", "y_min", "x_max", "y_max"):
+        df[col] = df[col].astype(np.int32)
+    splits = df.split.unique().tolist()
+
+    for split in splits:
+        output_subdir = output_dir / split
+        output_subdir.mkdir(parents=True, exist_ok=True)
+
+    images = df["image_id"].unique()
+    for image in images:
+        image_df = df.loc[lambda s: s["image_id"] == image]
+        write_xml(image_df, output_dir)
+        split_df = df.query("split == @split")
+        images = split_df["image_id"].unique()
+        for image in images:
+            image_df = split_df.loc[lambda s: s["image_id"] == image]
+            write_xml(image_df, root, output_dir)
         if copy_images:
             src_dir = Path(root).joinpath("images")
             if has_image_split:
