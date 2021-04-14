@@ -2,7 +2,7 @@
 ARG VARIANT=3.8
 FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl libgl1-mesa-glx
 
 ENV POETRY_HOME="/opt/poetry"
 ENV PATH="$POETRY_HOME/bin:$PATH"
