@@ -250,6 +250,7 @@ def convert_coco(
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ) -> None:
     """converts to coco from master df
+
     Args:
         df (pd.DataFrame): the master df
         root (Union[str, os.PathLike, PosixPath]): root directory of the source format
