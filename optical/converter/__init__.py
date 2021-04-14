@@ -73,7 +73,7 @@ class Annotation:
                 )
             if self.formatspec._has_image_split:
                 images_dir = get_image_dir(self.root) / split
-            elif not self.formatspec._has_image_split:
+            else:
                 images_dir = get_image_dir(self.root)
         images_dir = Path(images_dir)
         return Visualizer(images_dir, self.formatspec.master_df, split, img_size)
