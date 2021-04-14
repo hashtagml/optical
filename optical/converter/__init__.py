@@ -64,16 +64,16 @@ class Annotation:
         img_size: Optional[int] = 512,
     ):
         if images_dir is None:
-            if self.formatspec._has_image_split and split is not None:
-                images_dir = get_image_dir(self.root) / split
-            elif not self.formatspec._has_image_split:
-                images_dir = get_image_dir(self.root)
-            elif split is None:
-                split = random.choice(list(self.formatspec.master_df.split.unique()))
-                images_dir = get_image_dir(self.root) / split
+            random_split = random.choice(list(self.formatspec.master_df.split.unique()))
+            if split is None:
+                split = random_split
                 warnings.warn(
                     f"Since there is not split specified explicitly, {split} has been selected randomly."
                     + "Please pass split argument if you want to visualize different split."
                 )
+            if self.formatspec._has_image_split:
+                images_dir = get_image_dir(self.root) / split
+            elif not self.formatspec._has_image_split:
+                images_dir = get_image_dir(self.root)
         images_dir = Path(images_dir)
         return Visualizer(images_dir, self.formatspec.master_df, split, img_size)
