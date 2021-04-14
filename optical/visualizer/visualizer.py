@@ -61,7 +61,7 @@ class Visualizer:
         self.original_df = dataframe
         if split is not None:
             self.original_df = dataframe.query("split == @split").copy()
-        if self.original_df.shape < 1:
+        if self.original_df.shape[0] < 1:
             warnings.warn(
                 f"There are no images to be visualized in {split}. Please check the correct split and dataframe."
             )
