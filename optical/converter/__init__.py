@@ -10,15 +10,14 @@ from pathlib import Path
 from typing import Optional, Union
 import warnings
 
-from numpy import imag
-
-from ..visualizer.visualizer import Visualizer
 from .coco import Coco
 from .csv import Csv
-from .utils import get_image_dir
 from .yolo import Yolo
+from .pascal import Pascal
+from .utils import get_image_dir, ifnone
+from ..visualizer.visualizer import Visualizer
 
-SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo}
+SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "pascal": Pascal}
 
 
 class Annotation:
