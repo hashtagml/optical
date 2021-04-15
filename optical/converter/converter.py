@@ -339,7 +339,7 @@ def convert_pascal(
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
         for image in images:
-            image_df = split_df.loc[lambda s: s["image_id"] == image]
+            image_df = split_df.query("image_id == @image")
             write_xml(image_df, root, output_dir)
         if copy_images:
             src_dir = Path(root).joinpath("images")
