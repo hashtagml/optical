@@ -1,16 +1,19 @@
+<div align="center">
+
 # Optical
+![ci build](https://github.com/hashtagml/optical/actions/workflows/build.yaml/badge.svg)
 ![Python Version](https://img.shields.io/pypi/pyversions/optical)
 [![Documentation Status](https://readthedocs.org/projects/optical/badge/?version=latest)](https://optical.readthedocs.io/en/latest/?badge=latest)
 ![GitHub all releases](https://img.shields.io/github/downloads/hashtagml/optical/total)
 ![PyPI - License](https://img.shields.io/pypi/l/optical)
-![PyPI](https://img.shields.io/pypi/v/optical?color=darkgreen)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+[![PyPI version](https://badge.fury.io/py/optical.svg)](https://badge.fury.io/py/optical)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat)](#contributors-)
 
 <p align="center"><img align="centre" src="assets/optical_b.png" alt="logo" width = "650"></p>
 
 A collection of utilities for ML vision related tasks.
+
+</div>
 
 ## Contributing
 
