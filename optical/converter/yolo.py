@@ -3,15 +3,16 @@ __author__: HashTagML
 license: MIT
 Created: Wednesday, 31st March 2021
 """
+
+
+import os
 import imagesize
 from pathlib import Path
 from num2words import num2words
 import warnings
 from typing import Union
-import os
 import numpy as np
 import pandas as pd
-
 from .base import FormatSpec
 from .utils import exists, get_image_dir, get_annotation_dir
 
@@ -23,7 +24,7 @@ class Yolo(FormatSpec):
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
         assert exists(self._image_dir), "root is missing 'images' directory."
-        assert exists(self._annotation_dir), "root is missing `annotations` directory."
+        assert exists(self._annotation_dir), "root is missing 'annotations' directory."
         self._splits = self._find_splits()
         self._resolve_dataframe()
         
@@ -91,7 +92,7 @@ class Yolo(FormatSpec):
                     splits,
                 )
             ),
-            columns = [
+            columns=[
                  "image_id",
                  "image_width",
                  "image_height",
@@ -111,14 +112,11 @@ class Yolo(FormatSpec):
                     + "computation or conversion. It is recommended that you clean your dataset."
             )  
         for column in ["x_min", "y_min", "width", "height"]:
-            master_df[column] = master_df[column].astype(np.float32) 
-            
+            master_df[column] = master_df[column].astype(np.float32)     
         for column in ["image_width", "image_height"]:
-            master_df[column] = master_df[column].astype(np.int32)
-            
+            master_df[column] = master_df[column].astype(np.int32)    
         for column in ["category"]:
             master_df[column] = master_df[column].astype(str)
-            
         for column in ["class_id"]:
             master_df[column] = master_df[column].astype(np.int32)
             
