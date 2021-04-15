@@ -111,7 +111,7 @@ jobs:
       # try to install the project from build
       #----------------------------------------------
       - name: Install from wheel and sdist
-      - run: |
+        run: |
           rm -rf dist
           pip uninstall optical -y -q
           poetry build --format wheel
