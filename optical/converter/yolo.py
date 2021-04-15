@@ -27,19 +27,19 @@ class Yolo(FormatSpec):
         assert exists(self._annotation_dir), "root is missing 'annotations' directory."
         self._splits = self._find_splits()
         self._resolve_dataframe()
-        
+
     def _find_splits(self):
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
         ann_splits = [x.name for x in Path(self._annotation_dir).iterdir() if x.is_dir()]
-        
+
         if im_splits:
             self._has_image_split = True
-            
+
         no_anns = set(im_splits).difference(ann_splits)
         if no_anns:
             warnings.warn(f"no annotation found for {','.join(list(no_anns))}")
         return ann_splits
-    
+
     def _resolve_dataframe(self):
         img_names = []
         cls_ids = []
@@ -49,7 +49,7 @@ class Yolo(FormatSpec):
         box_height = []
         splits = []
         image_height = []
-        image_width = []              
+        image_width = []
         for split in self._splits:
             ann_dir_files = os.path.join(self._annotation_dir, split)
             img_dir_files = os.path.join(self._image_dir, split)
@@ -75,8 +75,8 @@ class Yolo(FormatSpec):
                     box_height.append(box_heights)
                     cls_ids.append(class_id)
                     splits.append(split)
-                    
-        category = [num2words(i) for i in cls_ids]      
+
+        category = [num2words(i) for i in cls_ids]
         master_df = pd.DataFrame(
             list(
                 zip(
@@ -104,20 +104,20 @@ class Yolo(FormatSpec):
                  "height",
                  "split",
             ],
-        )      
+        )
         if len(master_df[pd.isnull(master_df.image_id)]) > 0:
             warnings.warn(
                     "There are annotations in your dataset for which there is no matching images"
                     + f"(in split '{split}'). These annotations will be removed during any "
                     + "computation or conversion. It is recommended that you clean your dataset."
-            )  
+            )
         for column in ["x_min", "y_min", "width", "height"]:
-            master_df[column] = master_df[column].astype(np.float32)     
+            master_df[column] = master_df[column].astype(np.float32)
         for column in ["image_width", "image_height"]:
-            master_df[column] = master_df[column].astype(np.int32)    
+            master_df[column] = master_df[column].astype(np.int32)
         for column in ["category"]:
             master_df[column] = master_df[column].astype(str)
         for column in ["class_id"]:
             master_df[column] = master_df[column].astype(np.int32)
-            
+
         self.master_df = master_df
