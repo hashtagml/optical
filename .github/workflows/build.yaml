@@ -121,5 +121,5 @@ jobs:
           rm -rf dist
           pip uninstall optical -y -q
           poetry build --format sdist
-          pip install -q --find-links dist/ modelstore --no-deps # install from the sdist
+          pip install -q --find-links dist/ optical --no-deps # install from the sdist
           python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'          
