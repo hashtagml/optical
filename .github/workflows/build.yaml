@@ -1,0 +1,123 @@
+# name: Linter
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+# jobs:
+#   build:
+
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Set up Python 3.8
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: 3.8
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         python -m pip install flake8==3.9.0
+#     - name: Lint with flake8
+#       run: |
+#         flake8 . --count --show-source --statistics
+
+name: CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python     
+      #----------------------------------------------
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      #----------------------------------------------
+      #        load pip cache if cache exists      
+      #----------------------------------------------
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip
+          restore-keys: ${{ runner.os }}-pip
+      #----------------------------------------------
+      #          install and run linters      
+      #----------------------------------------------
+      - run: python -m pip install flake8==3.9.0
+      - run: |
+          flake8 . --count --show-source --statistics
+  build:
+    needs: linting
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: [3.7, 3.8, 3.9]
+    runs-on: ${{ matrix.os }}
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python     
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----      
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.1.2
+        with:
+          version: 1.1.5
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      #----------------------------------------------
+      #       load cached venv if cache exists      
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist 
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # install your root project, if required 
+      #----------------------------------------------      
+      - name: Install library
+        run: poetry install --no-interaction
+
+      #----------------------------------------------
+      # try to install the project from build
+      #----------------------------------------------
+      - name: Install from wheel and sdist
+      - run: |
+          rm -rf dist
+          pip uninstall optical -y -q
+          poetry build --format wheel
+          pip install -q --find-links dist/ optical --no-deps --no-index # install from the wheel
+          python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'
+
+          rm -rf dist
+          pip uninstall optical -y -q
+          poetry build --format sdist
+          pip install -q --find-links dist/ modelstore --no-deps # install from the sdist
+          python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'          
