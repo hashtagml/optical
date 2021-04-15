@@ -22,7 +22,7 @@ class Yolo(FormatSpec):
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
-        assert exists(self._image_dir), "root is missing `images` directory."
+        assert exists(self._image_dir), "root is missing 'images' directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()
         self._resolve_dataframe()
@@ -50,8 +50,8 @@ class Yolo(FormatSpec):
         image_height = []
         image_width = []              
         for split in self._splits:
-            ann_dir_files = self._annotation_dir / f"{split}"
-            img_dir_files = self._image_dir / f"{split}"
+            ann_dir_files = os.path.join(self._annotation_dir, split)
+            img_dir_files = os.path.join(self._image_dir, split)
             txt_files = [x for x in Path(ann_dir_files).glob("*.txt")]
             img_files = [x for x in Path(img_dir_files).glob("*.jpg")]
             for txt, img in zip(txt_files, img_files):
@@ -107,15 +107,18 @@ class Yolo(FormatSpec):
         if len(master_df[pd.isnull(master_df.image_id)]) > 0:
             warnings.warn(
                     "There are annotations in your dataset for which there is no matching images"
-                    + f"(in split `{split}`). These annotations will be removed during any "
+                    + f"(in split '{split}'). These annotations will be removed during any "
                     + "computation or conversion. It is recommended that you clean your dataset."
             )  
         for column in ["x_min", "y_min", "width", "height"]:
-            master_df[column] = master_df[column].astype(np.float32)     
+            master_df[column] = master_df[column].astype(np.float32) 
+            
         for column in ["image_width", "image_height"]:
-            master_df[column] = master_df[column].astype(np.int32)    
+            master_df[column] = master_df[column].astype(np.int32)
+            
         for column in ["category"]:
             master_df[column] = master_df[column].astype(str)
+            
         for column in ["class_id"]:
             master_df[column] = master_df[column].astype(np.int32)
             
