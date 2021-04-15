@@ -50,12 +50,6 @@ class Annotation:
     def convert(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
         if not to.lower() in SUPPORTED_FORMATS:
             raise ValueError(f"`{format}` is not a supported conversion format")
-
-        # if to.lower() == self.format.lower():
-        #     print("Nice Try!")
-        #     return
-
-        # self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
         return self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
 
     def visualizer(
