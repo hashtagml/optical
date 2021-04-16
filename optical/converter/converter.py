@@ -371,7 +371,7 @@ def convert_sagemaker(
 
         grouped_split_df = split_df.groupby(["image_id", "image_width", "image_height"])
 
-        with open(os.path.join(output_subdir, f"{split}.manifest"), "w") as f:
+        with open(output_subdir / f"{split}.manifest", "w") as f:
 
             for image_info, grouped_info in tqdm(
                 grouped_split_df, total=grouped_split_df.ngroups, desc=f"split: {split}"
