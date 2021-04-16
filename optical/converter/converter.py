@@ -18,7 +18,20 @@ import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
 
-from .utils import copyfile, get_id_to_class_map, ifnone, write_coco_json, write_xml
+try:
+    import tensorflow as tf
+except Exception:
+    tf = None
+
+from .utils import (
+    copyfile,
+    get_id_to_class_map,
+    ifnone,
+    write_coco_json,
+    write_xml,
+    create_tf_example,
+    write_label_map,
+)
 
 
 class LabelEncoder:
@@ -411,6 +424,57 @@ def convert_pascal(
             write_xml(image_df, root, output_labeldir)
 
         if copy_images:
+            dest_dir = output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
+
+
+def convert_tfrecord(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    has_image_split: bool = False,
+    copy_images: bool = False,
+    save_under: Optional[str] = None,
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+    """convert to tfrecords  from Masterdf
+
+    Args:
+        df (pd.DataFrame): the master df
+        root (Union[str, os.PathLike, PosixPath]): root directory of the source format
+        has_image_split (bool, optional):  If the images are arranged under the splits. Defaults to False.
+        copy_images (bool, optional):  Whether to copy the images to a different directory. Defaults to False.
+        save_under (Optional[str], optional):  Name of the folder to save the target annotations. Defaults to "labels".
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional):  Output directory for the target
+    """
+    output_dir = ifnone(output_dir, root, Path)
+    save_under = ifnone(save_under, "tfrecords")
+    output_dir = output_dir / save_under
+    output_imagedir = output_dir / "images"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    df = copy.deepcopy(df)
+    df["x_max"] = df["x_min"] + df["width"]
+    df["y_max"] = df["y_min"] + df["height"]
+    df.drop(["width", "height"], axis=1, inplace=True)
+
+    for col in ("x_min", "y_min", "x_max", "y_max"):
+        df[col] = df[col].astype(np.int32)
+    splits = df.split.unique().tolist()
+    for split in splits:
+        split_df = df.query("split == @split")
+        writer = tf.io.TFRecordWriter(str(Path(output_dir).joinpath(split + ".record")))
+        images = split_df["image_id"].unique()
+        for image in images:
+            image_df = split_df.query("image_id == @image")
+            tf_example = create_tf_example(image_df, root)
+            writer.write(tf_example.SerializeToString())
+        writer.close()
+    id_to_class_map = get_id_to_class_map(df)
+    write_label_map(id_to_class_map, output_dir)
+
+    if copy_images:
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 

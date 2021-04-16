@@ -15,11 +15,19 @@ from .csv import Csv
 from .yolo import Yolo
 from .pascal import Pascal
 from .sagemaker import SageMaker
+from .tfrecord import Tfrecord
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
 
 
-SUPPORTED_FORMATS = {"coco": Coco, "csv": Csv, "yolo": Yolo, "sagemaker": SageMaker, "pascal": Pascal}
+SUPPORTED_FORMATS = {
+    "coco": Coco,
+    "csv": Csv,
+    "yolo": Yolo,
+    "sagemaker": SageMaker,
+    "pascal": Pascal,
+    "tfrecord": Tfrecord,
+}
 
 
 class Annotation:

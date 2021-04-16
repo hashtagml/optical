@@ -6,6 +6,8 @@ Created: Tuesday, 30th March 2021
 
 import os
 from typing import Optional, Union
+from abc import ABC, abstractmethod
+import warnings
 
 import altair as alt
 import pandas as pd
@@ -13,7 +15,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.model_selection import iterative_train_test_split
 
-from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo
+try:
+    import tensorflow as tf
+except Exception:
+    tf = None
+
+from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo, convert_tfrecord
 from .utils import filter_split_category, ifnone
 
 pd.options.mode.chained_assignment = None
@@ -205,6 +212,17 @@ class FormatSpec:
                 output_dir=output_dir,
                 **kwargs,
             )
-
+        elif to.lower() == "tfrecord":
+            if tf:
+                return convert_tfrecord(
+                    self.master_df,
+                    self.root,
+                    has_image_split=self._has_image_split,
+                    output_dir=output_dir,
+                    save_under=save_under,
+                    copy_images=copy_images,
+                )
+            else:
+                warnings.warn("Please install tensorflow for support of tfrecord")
         else:
             raise NotImplementedError
