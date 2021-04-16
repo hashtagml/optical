@@ -80,7 +80,7 @@ class Yolo(FormatSpec):
 
         if self.class_file.is_file():
             with open(self.class_file) as file:
-                docs = yaml.load(file, Loader = yaml.FullLoader)
+                docs = yaml.load(file, Loader=yaml.FullLoader)
                 class_names = docs["names"]
                 for cls in cls_ids:
                     cat = class_names[int(cls)]
