@@ -1,5 +1,5 @@
 """
-__author__ : HashTagML
+__author__: HashTagML
 license: MIT
 Created: Wednesday, 31st March 2021
 """
@@ -8,7 +8,6 @@ Created: Wednesday, 31st March 2021
 import os
 import imagesize
 from pathlib import Path
-from num2words import num2words
 import warnings
 from typing import Union
 import numpy as np
@@ -20,6 +19,7 @@ from .utils import exists, get_image_dir, get_annotation_dir
 class Yolo(FormatSpec):
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
+        self.class_file = Path(os.path.join(self.root, "data.yaml"))
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
@@ -50,6 +50,7 @@ class Yolo(FormatSpec):
         splits = []
         image_height = []
         image_width = []
+        names_category=[]
         for split in self._splits:
             ann_dir_files = os.path.join(self._annotation_dir, split)
             img_dir_files = os.path.join(self._image_dir, split)
@@ -76,7 +77,18 @@ class Yolo(FormatSpec):
                     cls_ids.append(class_id)
                     splits.append(split)
 
-        category = [num2words(i) for i in cls_ids]
+        if self.class_file.is_file():
+            with open(self.class_file) as file:
+                docs = yaml.load(file, Loader = yaml.FullLoader)
+                class_names = docs["names"]
+                for cls in cls_ids:
+                    cat = class_names[int(cls)]
+                    names_category.append(cat)
+        if not self.class_file.is_file():
+            category = [str(i) for i in cls_ids]
+        else:
+            category = [c for c in names_category]
+
         master_df = pd.DataFrame(
             list(
                 zip(
