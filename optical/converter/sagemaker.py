@@ -63,7 +63,7 @@ class SageMaker(FormatSpec):
         }
         for split in self._splits:
 
-            with open(os.path.join(self._annotation_dir, f"{split}.manifest")) as f:
+            with open(self._annotation_dir / f"{split}.manifest") as f:
                 manifest_lines = f.readlines()
 
             if len(manifest_lines) == 0:
