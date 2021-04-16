@@ -62,7 +62,7 @@ class Yolo(FormatSpec):
                 image_widths, image_heights = imagesize.get(img)
                 image_height.append(image_heights)
                 image_width.append(image_widths)
-                with open(txt, 'rt') as fd:
+                with open(txt, "rt") as fd:
                     first_line = fd.readline()
                     splited = first_line.split()
                     class_id = splited[0]
@@ -106,23 +106,23 @@ class Yolo(FormatSpec):
                 )
             ),
             columns=[
-                 "image_id",
-                 "image_width",
-                 "image_height",
-                 "class_id",
-                 "category",
-                 "x_min",
-                 "y_min",
-                 "width",
-                 "height",
-                 "split",
+                "image_id",
+                "image_width",
+                "image_height",
+                "class_id",
+                "category",
+                "x_min",
+                "y_min",
+                "width",
+                "height",
+                "split",
             ],
         )
         if len(master_df[pd.isnull(master_df.image_id)]) > 0:
             warnings.warn(
-                    "There are annotations in your dataset for which there is no matching images"
-                    + f"(in split '{split}'). These annotations will be removed during any "
-                    + "computation or conversion. It is recommended that you clean your dataset."
+                "There are annotations in your dataset for which there is no matching images"
+                + f"(in split '{split}'). These annotations will be removed during any "
+                + "computation or conversion. It is recommended that you clean your dataset."
             )
         for column in ["x_min", "y_min", "width", "height"]:
             master_df[column] = master_df[column].astype(np.float32)
