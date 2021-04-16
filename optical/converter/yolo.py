@@ -8,6 +8,7 @@ Created: Wednesday, 31st March 2021
 import os
 import imagesize
 from pathlib import Path
+import yaml
 import warnings
 from typing import Union
 import numpy as np
@@ -50,7 +51,7 @@ class Yolo(FormatSpec):
         splits = []
         image_height = []
         image_width = []
-        names_category=[]
+        names_category = []
         for split in self._splits:
             ann_dir_files = os.path.join(self._annotation_dir, split)
             img_dir_files = os.path.join(self._image_dir, split)
