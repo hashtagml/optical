@@ -8,12 +8,11 @@ import json
 import os
 import shutil
 import warnings
-
 from pathlib import Path, PosixPath
 from typing import Any, Callable, Dict, Optional, Union
 
-from lxml import etree as xml
 import pandas as pd
+from lxml import etree as xml
 
 
 def ifnone(x: Any, y: Any, transform: Optional[Callable] = None, type_safe: bool = False):
@@ -197,5 +196,5 @@ def get_id_to_class_map(df: pd.DataFrame):
     Returns:
         Dict: mapping dictionary
     """
-    values = pd.unique(df[["class_id", "category"]].values.ravel())
-    return dict(zip(values[0::2], values[1::2]))
+    set_df = df.drop_duplicates(subset="class_id")[["category", "class_id"]]
+    return set_df.set_index("class_id")["category"].to_dict()

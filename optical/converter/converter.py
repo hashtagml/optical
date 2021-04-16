@@ -5,18 +5,20 @@ Created: Wednesday, 31st March 2021
 """
 
 import copy
+import json
 import os
 import warnings
+from datetime import datetime
 from pathlib import Path, PosixPath
 from typing import Dict, List, Optional, Union
-from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
-import json
-from .utils import copyfile, ifnone, write_coco_json, get_id_to_class_map, write_xml
+
+from .utils import copyfile, get_id_to_class_map, ifnone, write_coco_json, write_xml
 
 
 class LabelEncoder:
@@ -313,17 +315,7 @@ def _make_manifest_data(image_info: List, grouped_info: pd.DataFrame, job_name: 
         "creation-date": str(datetime.now()),
         "type": "groundtruth/object-detection",
     }
-    annotations = []
-    for idx, row_info in grouped_info.iterrows():
-        annotations.append(
-            {
-                "class_id": int(row_info["class_id"]),
-                "width": int(row_info["width"]),
-                "height": int(row_info["height"]),
-                "top": int(row_info["y_min"]),
-                "left": int(row_info["x_min"]),
-            }
-        )
+    annotations = grouped_info[["class_id", "height", "width", "top", "left"]].to_dict("records")
     # append annotations
     manifest_dic[f"{job_name}"]["annotations"] = annotations
 
@@ -374,8 +366,10 @@ def convert_sagemaker(
 
         split_df = split_df[pd.notnull(split_df["image_width"]) & pd.notnull(split_df["image_height"])]
 
+        split_df = split_df.rename(columns={"y_min": "top", "x_min": "left"})
         id_to_class_map = get_id_to_class_map(split_df)
-        grouped_split_df = split_df.groupby(["image_id", "width", "height"])
+
+        grouped_split_df = split_df.groupby(["image_id", "image_width", "image_height"])
 
         with open(os.path.join(output_subdir, f"{split}.manifest"), "w") as f:
 

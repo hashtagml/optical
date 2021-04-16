@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
+
 from .base import FormatSpec
 from .utils import exists, find_job_metadata_key, get_annotation_dir, get_image_dir
 
