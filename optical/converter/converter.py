@@ -44,8 +44,8 @@ class LabelEncoder:
         return self.transform(series)
 
 
-def _fastcopy(src_dir: Union[str, os.PathLike], dest_dir: Union[str, os.PathLike], image_ids: List[str]):
-    _ = Parallel(n_jobs=-1, backend="threading")(delayed(copyfile)(src_dir, dest_dir, im_id) for im_id in image_ids)
+def _fastcopy(src_files: Union[str, os.PathLike], dest_dir: Union[str, os.PathLike]):
+    _ = Parallel(n_jobs=-1, backend="threading")(delayed(copyfile)(f, dest_dir) for f in src_files)
 
 
 def write_yolo_txt(filename: str, output_dir: Union[str, os.PathLike, PosixPath], yolo_string: str):
@@ -55,10 +55,19 @@ def write_yolo_txt(filename: str, output_dir: Union[str, os.PathLike, PosixPath]
         f.write("\n")
 
 
+def _makedirs(src: Union[str, os.PathLike], ext: str, dest: Optional[Union[str, os.PathLike]] = None):
+    output_dir = ifnone(dest, src, Path)
+    output_dir = output_dir / ext
+    output_imagedir = output_dir / "images"
+    output_labeldir = output_dir / "annotations"
+    output_imagedir.mkdir(parents=True, exist_ok=True)
+    output_labeldir.mkdir(parents=True, exist_ok=True)
+    return output_imagedir, output_labeldir
+
+
 def convert_yolo(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-    has_image_split: bool = False,
     copy_images: bool = False,
     save_under: str = "annotations",
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
@@ -75,11 +84,8 @@ def convert_yolo(
             annotation. Defaults to ``None``.
     """
 
-    output_dir = ifnone(output_dir, root, Path)
     save_under = ifnone(save_under, "yolo")
-    output_labeldir = output_dir / f"{save_under}"
-    output_imagedir = output_dir / "images"
-    output_labeldir.mkdir(parents=True, exist_ok=True)
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
 
     splits = df.split.unique().tolist()
     lbl = LabelEncoder()
@@ -136,13 +142,10 @@ def convert_yolo(
             write_yolo_txt(image_id, output_subdir, ystr)
 
         if copy_images:
-            src_dir = Path(root).joinpath("images")
-            if has_image_split:
-                src_dir = src_dir.joinpath(split)
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
-            _fastcopy(src_dir, dest_dir, image_ids)
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
     dataset["nc"] = len(lbl._map)
     dataset["names"] = list(lbl._map.keys())
@@ -154,18 +157,13 @@ def convert_yolo(
 def convert_csv(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-    has_image_split: bool = False,
     copy_images: bool = False,
     save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
 
-    output_dir = ifnone(output_dir, Path(root) / "csv" / "annotations", Path)
     save_under = ifnone(save_under, "csv")
-    output_dir = output_dir / save_under
-    print(output_dir)
-    output_imagedir = output_dir / "images"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
 
     df = copy.deepcopy(df)
     df["x_max"] = df["x_min"] + df["width"]
@@ -179,24 +177,22 @@ def convert_csv(
     for split in splits:
         split_df = df.query("split == @split").copy()
         split_df.drop(["split"], axis=1, inplace=True)
+
+        image_paths = split_df["image_path"].unique().tolist()
         split_df = split_df[
             ["image_id", "image_width", "image_height", "x_min", "y_min", "x_max", "y_max", "category"]
         ]
-        split_df.to_csv(output_dir.joinpath(f"{split}.csv"), index=False)
-
-        image_ids = split_df["image_id"].unique().tolist()
+        split_df.to_csv(output_labeldir.joinpath(f"{split}.csv"), index=False)
 
         if copy_images:
-            src_dir = Path(root).joinpath("images")
-            if has_image_split:
-                src_dir = src_dir.joinpath(split)
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
-            _fastcopy(src_dir, dest_dir, image_ids)
+            _fastcopy(image_paths, dest_dir)
 
 
 def _make_coco_images(df: pd.DataFrame, image_map: Dict) -> List:
+    """makes images list for coco"""
     df = copy.deepcopy(df)
     df.drop_duplicates(subset=["image_id"], keep="first", inplace=True)
     df = (
@@ -246,7 +242,6 @@ def _make_coco_categories(df: pd.DataFrame) -> List:
 def convert_coco(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-    has_image_split: bool = False,
     copy_images: bool = False,
     save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
@@ -263,18 +258,12 @@ def convert_coco(
             annotation. Defaults to ``None``.
     """
 
-    output_dir = ifnone(output_dir, root, Path)
     save_under = ifnone(save_under, "coco")
-    output_labeldir = output_dir / f"{save_under}"
-    output_imagedir = output_dir / "images"
-    output_labeldir.mkdir(parents=True, exist_ok=True)
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
 
     splits = df.split.unique().tolist()
 
     for split in splits:
-        # output_subdir = output_labeldir / split
-        # output_subdir.mkdir(parents=True, exist_ok=True)
-
         split_df = df.query("split == @split").copy()
         images = df["image_id"].unique().tolist()
 
@@ -293,13 +282,10 @@ def convert_coco(
         write_coco_json(coco_dict, output_file)
 
         if copy_images:
-            src_dir = Path(root).joinpath("images")
-            if has_image_split:
-                src_dir = src_dir.joinpath(split)
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
-            _fastcopy(src_dir, dest_dir, images)
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
 
 def _make_manifest_data(image_info: List, grouped_info: pd.DataFrame, job_name: str, id_to_class_map: Dict):
@@ -325,9 +311,8 @@ def _make_manifest_data(image_info: List, grouped_info: pd.DataFrame, job_name: 
 def convert_sagemaker(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-    has_image_split: bool = False,
     copy_images: bool = False,
-    save_under: str = "annotations",
+    save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
     job_name: str = "optical",
 ):
@@ -344,14 +329,12 @@ def convert_sagemaker(
         job_name(Optional[str]): manifest job name for the output file. Defaults to optical
     """
 
-    output_dir = ifnone(output_dir, root, Path)
-    output_labeldir = output_dir / f"{save_under}"
-    output_imagedir = output_dir / "images"
-    output_labeldir.mkdir(parents=True, exist_ok=True)
+    save_under = ifnone(save_under, "sagemaker")
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
 
     splits = df.split.unique().tolist()
     for split in splits:
-        output_subdir = output_labeldir / split
+        output_subdir = output_labeldir
         output_subdir.mkdir(parents=True, exist_ok=True)
 
         split_df = df.query("split == @split").copy()
@@ -381,20 +364,15 @@ def convert_sagemaker(
                 f.write(json.dumps(manifest_dic) + "\n")
 
         if copy_images:
-            src_dir = Path(root).joinpath("images")
-            if has_image_split:
-                src_dir = src_dir.joinpath(split)
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
-            images = split_df["image_id"].unique().tolist()
-            _fastcopy(src_dir, dest_dir, images)
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
 
 def convert_pascal(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
-    has_image_split: bool = False,
     copy_images: bool = False,
     save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
@@ -409,11 +387,9 @@ def convert_pascal(
         save_under (Optional[str], optional):  Name of the folder to save the target annotations. Defaults to "labels".
         output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional):  Output directory for the target
     """
-    output_dir = ifnone(output_dir, root, Path)
+
     save_under = ifnone(save_under, "pascal")
-    output_dir = output_dir / save_under
-    output_imagedir = output_dir / "images"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
 
     df = copy.deepcopy(df)
     df["x_max"] = df["x_min"] + df["width"]
@@ -425,18 +401,17 @@ def convert_pascal(
     splits = df.split.unique().tolist()
 
     for split in splits:
-        output_subdir = output_dir / split
+        output_subdir = output_labeldir / split
         output_subdir.mkdir(parents=True, exist_ok=True)
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
+
         for image in images:
             image_df = split_df.query("image_id == @image")
-            write_xml(image_df, root, output_dir)
+            write_xml(image_df, root, output_labeldir)
+
         if copy_images:
-            src_dir = Path(root).joinpath("images")
-            if has_image_split:
-                src_dir = src_dir.joinpath(split)
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
 
-            _fastcopy(src_dir, dest_dir, images)
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)

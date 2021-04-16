@@ -28,6 +28,7 @@ class SageMaker(FormatSpec):
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
+        self.format = "sagemaker"
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()

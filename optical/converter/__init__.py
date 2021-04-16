@@ -47,23 +47,32 @@ class Annotation:
     def bbox_stats(self, split: Optional[str] = None, category: Optional[str] = None):
         return self.formatspec.bbox_stats(split, category)
 
-    def convert(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
+    def export(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
         if not to.lower() in SUPPORTED_FORMATS:
             raise ValueError(f"`{format}` is not a supported conversion format")
 
-        # if to.lower() == self.format.lower():
-        #     print("Nice Try!")
-        #     return
-
         return self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
+
+    def train_test_split(self, test_size: float = 0.2, stratified: bool = False, random_state: int = 42):
+        """splits the dataset into train and validation sets
+
+        Args:
+            test_size (float, optional): Fraction of total images to be kept for validation. Defaults to 0.2.
+            stratified (bool, optional): Whether to stratify the split. Defaults to False.
+            random_state (int, optional): random state for the split. Defaults to 42.
+
+        Returns:
+            FormatSpec: Returns an instance of `FormatSpec` class
+        """
+        return self.formatspec.split(test_size, stratified, random_state)
 
     def visualizer(
         self,
-        images_dir: Optional[Union[str, os.PathLike]] = None,
+        image_dir: Optional[Union[str, os.PathLike]] = None,
         split: Optional[str] = None,
         img_size: Optional[int] = 512,
     ):
-        if images_dir is None:
+        if image_dir is None:
             random_split = random.choice(list(self.formatspec.master_df.split.unique()))
             if split is None:
                 split = random_split
@@ -72,8 +81,8 @@ class Annotation:
                     + "Please pass split argument if you want to visualize different split."
                 )
             if self.formatspec._has_image_split:
-                images_dir = get_image_dir(self.root) / split
+                image_dir = get_image_dir(self.root) / split
             else:
-                images_dir = get_image_dir(self.root)
-        images_dir = Path(images_dir)
-        return Visualizer(images_dir, self.formatspec.master_df, split, img_size)
+                image_dir = get_image_dir(self.root)
+        image_dir = Path(image_dir)
+        return Visualizer(image_dir, self.formatspec.master_df, split, img_size)
