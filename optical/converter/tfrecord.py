@@ -5,22 +5,16 @@ Created: Friday, 16th April 2021
 """
 
 import os
-import io
-import warnings
 from typing import Union
 from pathlib import Path
 
-from PIL import Image
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 
-try:
-    import tensorflow as tf
-except Exception:
-    tf = None
 
 from .base import FormatSpec
-from .utils import tf_parse_example
+from .utils import _tf_parse_example, tf_decode_image
 
 
 class Tfrecord(FormatSpec):
@@ -32,10 +26,7 @@ class Tfrecord(FormatSpec):
         self._annotation_dir = root
         self._image_dir = image_path
         self._splits = self._find_splits()
-        if tf:
-            self._resolve_dataframe()
-        else:
-            warnings.warn("Please install tensorflow for support of tfrecord")
+        self._resolve_dataframe()
 
     def _find_splits(self):
         ann_splits = [x.stem for x in Path(self.root).glob("*.tfrecord")]
@@ -47,6 +38,8 @@ class Tfrecord(FormatSpec):
         return ann_splits
 
     def _resolve_dataframe(self):
+        import tensorflow as tf
+
         img_filenames = []
         img_widths = []
         img_heights = []
@@ -60,7 +53,7 @@ class Tfrecord(FormatSpec):
         for split in self._splits:
             tf_record = str(Path(self.root) / f"{split}.tfrecord")
             render = tf.data.TFRecordDataset(tf_record)
-            dataset = render.map(tf_parse_example)
+            dataset = render.map(_tf_parse_example)
             img_dir = Path(self.root) / "images" / split
             img_dir.mkdir(parents=True, exist_ok=True)
             for data in dataset:
@@ -68,11 +61,7 @@ class Tfrecord(FormatSpec):
                 img_height = int(data["image/height"].numpy())
                 img_width = int(data["image/width"].numpy())
                 bbox_len = data["image/object/bbox/xmin"].shape[0]
-                img = data["image/encoded"].numpy()
-                im = Image.open(io.BytesIO(img))
-                im.save(str(Path(self.root) / "images" / split / img_filename))
                 for i in range(bbox_len):
-                    cls_names.append(data["image/object/class/text"].values[i].numpy().decode("utf-8"))
                     xmin = data["image/object/bbox/xmin"].values[i].numpy() * img_width
                     ymin = data["image/object/bbox/ymin"].values[i].numpy() * img_height
                     x_mins.append(xmin)
@@ -87,6 +76,9 @@ class Tfrecord(FormatSpec):
                     img_widths.append(img_width)
                     cls_ids.append(data["image/object/class/label"].values[i].numpy())
                     splits.append(split)
+            _ = Parallel(n_jobs=-1, backend="threading")(
+                delayed(tf_decode_image)(self.root, data, split) for data in dataset
+            )
         master_df = pd.DataFrame(
             list(
                 zip(

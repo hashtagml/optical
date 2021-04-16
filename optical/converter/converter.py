@@ -3,6 +3,7 @@ __author__: HashTagML
 license: MIT
 Created: Wednesday, 31st March 2021
 """
+# TODO: needs better solution
 
 import copy
 import json
@@ -17,11 +18,6 @@ import pandas as pd
 import yaml
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
-
-try:
-    import tensorflow as tf
-except Exception:
-    tf = None
 
 from .utils import (
     copyfile,
@@ -437,7 +433,7 @@ def convert_tfrecord(
     copy_images: bool = False,
     save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
-):
+) -> None:
     """convert to tfrecords  from Masterdf
 
     Args:
@@ -448,6 +444,8 @@ def convert_tfrecord(
         save_under (Optional[str], optional):  Name of the folder to save the target annotations. Defaults to "labels".
         output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional):  Output directory for the target
     """
+    import tensorflow as tf
+
     output_dir = ifnone(output_dir, root, Path)
     save_under = ifnone(save_under, "tfrecords")
     output_dir = output_dir / save_under

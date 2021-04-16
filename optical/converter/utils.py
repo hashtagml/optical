@@ -5,6 +5,7 @@ Created: Sunday, 28th March 2021
 """
 
 import json
+import io
 import os
 import shutil
 import warnings
@@ -13,11 +14,13 @@ from typing import Any, Callable, Dict, Optional, Union
 
 import pandas as pd
 from lxml import etree as xml
+from PIL import Image
 
+_TF_INSTALLED = True
 try:
     import tensorflow as tf
-except Exception:
-    tf = None
+except ImportError:
+    _TF_INSTALLED = False
 
 
 def ifnone(x: Any, y: Any, transform: Optional[Callable] = None, type_safe: bool = False):
@@ -208,7 +211,7 @@ def get_id_to_class_map(df: pd.DataFrame):
     return set_df.set_index("class_id")["category"].to_dict()
 
 
-def tf_parse_example(example):
+def _tf_parse_example(example):
     features = {
         "image/height": tf.io.FixedLenFeature([], tf.int64),
         "image/width": tf.io.FixedLenFeature([], tf.int64),
@@ -225,23 +228,23 @@ def tf_parse_example(example):
     return tf.io.parse_single_example(example, features)
 
 
-def tf_int64_feature(value):
+def _tf_int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
-def tf_bytes_feature(value):
+def _tf_bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def tf_float_list_feature(value):
+def _tf_float_list_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
 
-def tf_bytes_list_feature(value):
+def _tf_bytes_list_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=value))
 
 
-def tf_int64_list_feature(value):
+def _tf_int64_list_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
@@ -255,6 +258,7 @@ def create_tf_example(df: pd.DataFrame, root: Union[str, os.PathLike, PosixPath]
     Returns:
         protobuf: protobuf of each Image
     """
+
     img_path = os.path.join(root, "images", df["split"].iloc[0], "{}".format(df["image_id"].iloc[0]))
     with tf.io.gfile.GFile(img_path, "rb") as fid:
         encoded_jpg = fid.read()
@@ -273,18 +277,18 @@ def create_tf_example(df: pd.DataFrame, root: Union[str, os.PathLike, PosixPath]
     tf_example = tf.train.Example(
         features=tf.train.Features(
             feature={
-                "image/height": tf_int64_feature(height),
-                "image/width": tf_int64_feature(width),
-                "image/filename": tf_bytes_feature(filename),
-                "image/source_id": tf_bytes_feature(filename),
-                "image/encoded": tf_bytes_feature(encoded_jpg),
-                "image/format": tf_bytes_feature(image_format),
-                "image/object/bbox/xmin": tf_float_list_feature(xmins),
-                "image/object/bbox/xmax": tf_float_list_feature(xmaxs),
-                "image/object/bbox/ymin": tf_float_list_feature(ymins),
-                "image/object/bbox/ymax": tf_float_list_feature(ymaxs),
-                "image/object/class/text": tf_bytes_list_feature(classes_text),
-                "image/object/class/label": tf_int64_list_feature(classes),
+                "image/height": _tf_int64_feature(height),
+                "image/width": _tf_int64_feature(width),
+                "image/filename": _tf_bytes_feature(filename),
+                "image/source_id": _tf_bytes_feature(filename),
+                "image/encoded": _tf_bytes_feature(encoded_jpg),
+                "image/format": _tf_bytes_feature(image_format),
+                "image/object/bbox/xmin": _tf_float_list_feature(xmins),
+                "image/object/bbox/xmax": _tf_float_list_feature(xmaxs),
+                "image/object/bbox/ymin": _tf_float_list_feature(ymins),
+                "image/object/bbox/ymax": _tf_float_list_feature(ymaxs),
+                "image/object/class/text": _tf_bytes_list_feature(classes_text),
+                "image/object/class/label": _tf_int64_list_feature(classes),
             }
         )
     )
@@ -309,3 +313,17 @@ def write_label_map(id_to_class_map: Dict, output_dir: Union[str, os.PathLike, P
             f.write("display_name:'{0}'".format(str(cl)))
             f.write("\n")
             f.write("}\n")
+
+
+def tf_decode_image(root: Union[str, os.PathLike, PosixPath], data, split: Union[str, os.PathLike, PosixPath]):
+    """Decodes images and save in images folder under root
+
+    Args:
+        root (Union[str, os.PathLike, PosixPath]): path to root directory
+        data (tf.train.Example): single Image example
+        split (Union[str, os.PathLike, PosixPath]): split directory
+    """
+    img_filename = data["image/filename"].numpy().decode("utf-8")
+    img = data["image/encoded"].numpy()
+    im = Image.open(io.BytesIO(img))
+    im.save(str(Path(root) / "images" / split / img_filename))

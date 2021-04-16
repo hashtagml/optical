@@ -3,6 +3,7 @@ __author__: HashTagML
 license: MIT
 Created: Tuesday, 30th March 2021
 """
+# TODO: needs better solution
 
 import os
 from typing import Optional, Union
@@ -15,15 +16,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.model_selection import iterative_train_test_split
 
-try:
-    import tensorflow as tf
-except Exception:
-    tf = None
-
 from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo, convert_tfrecord
 from .utils import filter_split_category, ifnone
 
 pd.options.mode.chained_assignment = None
+_TF_INSTALLED = True
+try:
+    import tensorflow as tf  # noqa: F401
+except ImportError:
+    _TF_INSTALLED = False
+
 
 
 class FormatSpec:
@@ -213,7 +215,7 @@ class FormatSpec:
                 **kwargs,
             )
         elif to.lower() == "tfrecord":
-            if tf:
+            if _TF_INSTALLED:
                 return convert_tfrecord(
                     self.master_df,
                     self.root,
@@ -223,6 +225,6 @@ class FormatSpec:
                     copy_images=copy_images,
                 )
             else:
-                warnings.warn("Please install tensorflow for support of tfrecord")
+                raise ImportError("Please Install Tensorflow for tfrecord support")
         else:
             raise NotImplementedError

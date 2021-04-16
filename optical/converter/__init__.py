@@ -3,6 +3,7 @@ __author__: HashTagML
 license: MIT
 Created: Sunday, 28th March 2021
 """
+# TODO: needs better solution
 
 import os
 import random
@@ -19,6 +20,11 @@ from .tfrecord import Tfrecord
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
 
+_TF_INSTALLED = True
+try:
+    import tensorflow as tf
+except ImportError:
+    _TF_INSTALLED = False
 
 SUPPORTED_FORMATS = {
     "coco": Coco,
@@ -35,6 +41,8 @@ class Annotation:
         if format.lower() not in SUPPORTED_FORMATS:
             raise ValueError(f"`{format}` is not a supported format")
 
+        if format.lower() == "tfrecord" and not _TF_INSTALLED:
+            raise ImportError("Please Install Tensorflow for tfrecord support")
         self.root = root
         self.format = format
         self.formatspec = SUPPORTED_FORMATS[format.lower()](root)
