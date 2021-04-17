@@ -4,25 +4,39 @@ license: MIT
 Created: Tuesday, 30th March 2021
 """
 
-from abc import ABC, abstractmethod
-from typing import Optional
+import os
+from typing import Optional, Union
 
 import altair as alt
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MultiLabelBinarizer
+from skmultilearn.model_selection import iterative_train_test_split
 
 from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo
-from .utils import filter_split_category
+from .utils import filter_split_category, ifnone
+
+pd.options.mode.chained_assignment = None
 
 
-class FormatSpec(ABC):
+class FormatSpec:
     """The base class to represent all annotation formats"""
 
-    def __init__(self):
-        self.root = None
-        self._has_image_split = None
-        self.master_df = None
+    def __init__(
+        self,
+        root: Optional[Union[str, os.PathLike]] = None,
+        has_split: Optional[bool] = None,
+        df: Optional[pd.DataFrame] = None,
+        format: Optional[str] = None,
+    ):
+        self.root = root
+        self._has_image_split = has_split
+        self.master_df = df
+        self.format = format
 
-    @abstractmethod
+    # @abstractmethod
+    # removing absract class as it cannot be instantiated from within
+    # as required for split
     def _resolve_dataframe(self):
         pass
 
@@ -88,11 +102,65 @@ class FormatSpec(ABC):
         )
         return df
 
+    def split(self, test_size: float = 0.2, stratified: bool = False, random_state: int = 42):
+        """splits the dataset into train and validation sets
+
+        Args:
+            test_size (float, optional): Fraction of total images to be kept for validation. Defaults to 0.2.
+            stratified (bool, optional): Whether to stratify the split. Defaults to False.
+            random_state (int, optional): random state for the split. Defaults to 42.
+
+        Returns:
+            FormatSpec: Returns an instance of `FormatSpec` class
+        """
+
+        label_df = self.master_df.copy()
+
+        if stratified:
+            class_df = label_df[["image_id", "class_id"]].copy()
+            class_df.drop_duplicates(inplace=True)
+            gdf = class_df.groupby("image_id")["class_id"].agg(lambda x: x.tolist()).reset_index()
+
+            mlb = MultiLabelBinarizer()
+            out = mlb.fit_transform(gdf.class_id)
+            label_names = [f"class_{x}" for x in mlb.classes_]
+            out = pd.DataFrame(data=out, columns=label_names)
+
+            gdf = pd.concat([gdf, out], axis=1)
+            gdf.drop(["class_id"], axis=1, inplace=True)
+
+            train_images, _, test_images, _ = iterative_train_test_split(
+                gdf[["image_id"]].values, gdf[label_names].values, test_size=test_size
+            )
+
+            train_images = train_images.ravel()
+            test_images = test_images.ravel()
+
+        else:
+            image_ids = label_df.image_id.unique()
+            train_images, test_images = train_test_split(image_ids, test_size=test_size, random_state=random_state)
+
+        train_df = label_df.loc[label_df["image_id"].isin(train_images.tolist())]
+        test_df = label_df.loc[label_df["image_id"].isin(test_images.tolist())]
+
+        train_df.loc[:, "split"] = "train"
+        test_df.loc[:, "split"] = "valid"
+
+        master_df = pd.concat([train_df, test_df], ignore_index=True)
+        return FormatSpec(self.root, True, master_df, format=self.format)
+
+    def save(
+        self, output_dir: Optional[Union[str, os.PathLike]], export_to: Optional[str] = None, copy_images: bool = True
+    ):
+        """Just another api for convert. Similar to export"""
+        export_to = ifnone(export_to, self.format)
+        return self.convert(export_to, output_dir=output_dir, copy_images=copy_images)
+
     def convert(
         self,
         to: str,
         output_dir: Optional[str] = None,
-        save_under: str = "labels",
+        save_under: Optional[str] = None,
         copy_images: bool = False,
         **kwargs,
     ):
@@ -100,45 +168,43 @@ class FormatSpec(ABC):
             return convert_yolo(
                 self.master_df,
                 self.root,
-                has_image_split=self._has_image_split,
                 copy_images=copy_images,
                 save_under=save_under,
                 output_dir=output_dir,
             )
-        if to.lower() == "coco":
+        elif to.lower() == "coco":
             return convert_coco(
                 self.master_df,
                 self.root,
-                has_image_split=self._has_image_split,
                 copy_images=copy_images,
                 save_under=save_under,
                 output_dir=output_dir,
             )
-        if to.lower() == "pascal":
+        elif to.lower() == "pascal":
             return convert_pascal(
                 self.master_df,
                 self.root,
-                has_image_split=self._has_image_split,
                 output_dir=output_dir,
                 save_under=save_under,
                 copy_images=copy_images,
             )
-        if to.lower() == "csv":
+        elif to.lower() == "csv":
             return convert_csv(
                 self.master_df,
                 self.root,
-                has_image_split=self._has_image_split,
                 output_dir=output_dir,
                 save_under=save_under,
                 copy_images=copy_images,
             )
-        if to.lower() == "sagemaker":
+        elif to.lower() == "sagemaker":
             return convert_sagemaker(
                 self.master_df,
                 self.root,
-                has_image_split=self._has_image_split,
                 copy_images=copy_images,
                 save_under=save_under,
                 output_dir=output_dir,
                 **kwargs,
             )
+
+        else:
+            raise NotImplementedError

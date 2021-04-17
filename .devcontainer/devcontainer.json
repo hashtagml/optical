@@ -70,7 +70,7 @@
         "eamodio.gitlens",
         "aaron-bond.better-comments",
         "be5invis.toml",
-        "lextudio.restructuredtext"
+        "lextudio.restructuredtext",
     ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],

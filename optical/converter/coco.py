@@ -19,10 +19,11 @@ from .utils import exists, get_annotation_dir, get_image_dir, read_coco
 
 class Coco(FormatSpec):
     def __init__(self, root: Union[str, os.PathLike]):
-        self.root = root
+        self.root = Path(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
+        self.format = "coco"
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()
@@ -85,12 +86,16 @@ class Coco(FormatSpec):
                 )
 
             master_df = pd.concat([master_df, annots_df], ignore_index=True)
+            split_dir = split if self._has_image_split else ""
+            master_df["image_path"] = master_df["image_id"].map(
+                lambda x: self.root.joinpath("images").joinpath(split_dir).joinpath(x)
+            )
 
         master_df = master_df[pd.notnull(master_df.image_id)]
         for col in ["x_min", "y_min", "width", "height"]:
             master_df[col] = master_df[col].astype(np.float32)
 
-        for col in ["image_width", "image_height"]:
+        for col in ["image_width", "image_height", "class_id"]:
             master_df[col] = master_df[col].astype(np.int32)
 
         self.master_df = master_df

@@ -101,6 +101,9 @@ def copyfile(
     if filename is not None:
         filename = Path(src) / filename
 
+    else:
+        filename = src
+
     dest = Path(dest) / filename.name
     try:
         shutil.copyfile(filename, dest)
