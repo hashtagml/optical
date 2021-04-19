@@ -1,18 +1,20 @@
 """
-__author__:HashTagML
+__author__: HashTagML
 license: MIT
-Created: Wednesday, 31st March 2021
+Created: Monday, 29th March 2021
 """
 
 
 import os
-import imagesize
-from pathlib import Path
-import yaml
 import warnings
+from pathlib import Path
 from typing import Union
+
+import imagesize
+import yaml
 import numpy as np
 import pandas as pd
+
 from .base import FormatSpec
 from .utils import exists, get_image_dir, get_annotation_dir
 
@@ -20,7 +22,7 @@ from .utils import exists, get_image_dir, get_annotation_dir
 class Yolo(FormatSpec):
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
-        self.class_file = Path(os.path.join(self.root, "data.yaml"))
+        self.class_file = [y for y in Path(self.root).glob("*.yaml")]
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
@@ -64,12 +66,7 @@ class Yolo(FormatSpec):
                 image_width.append(image_widths)
                 with open(txt, "rt") as fd:
                     first_line = fd.readline()
-                    splited = first_line.split()
-                    class_id = splited[0]
-                    x_cent = splited[1]
-                    y_cent = splited[2]
-                    box_widths = splited[3]
-                    box_heights = splited[4]
+                    class_id, x_cent, y_cent, box_widths, box_heights = first_line.split()
                     img_names.append(file_names)
                     x_center.append(x_cent)
                     y_center.append(y_cent)
@@ -78,17 +75,22 @@ class Yolo(FormatSpec):
                     cls_ids.append(class_id)
                     splits.append(split)
 
-        if self.class_file.is_file():
-            with open(self.class_file) as file:
-                docs = yaml.load(file, Loader=yaml.FullLoader)
-                class_names = docs["names"]
-                for cls in cls_ids:
-                    cat = class_names[int(cls)]
-                    names_category.append(cat)
-        if not self.class_file.is_file():
-            category = [str(i) for i in cls_ids]
-        else:
-            category = [c for c in names_category]
+        for yfile in self.class_file:
+            if os.path.exists(str(yfile)):
+                with open(str(yfile)) as file:
+                    docs = yaml.load(file, Loader=yaml.FullLoader)
+                    class_names = docs["names"]
+                    for cls in cls_ids:
+                        cat = class_names[int(cls)]
+                        names_category.append(cat)
+            if not os.path.exists(str(yfile)):
+                category = [str(i) for i in cls_ids]
+                warnings.warn(
+                    "There is no yaml file which containes class info like names: ['Platelets', 'RBC', 'WBC'] in root."
+                    + "please provide yaml file or else it will take class_ids as  class names."
+                )
+            else:
+                category = [c for c in names_category]
 
         master_df = pd.DataFrame(
             list(
