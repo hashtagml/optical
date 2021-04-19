@@ -3,7 +3,7 @@ __author__: HashTagML
 license: MIT
 Created: Tuesday, 30th March 2021
 """
-# TODO: needs better solution
+# TODO: needs better solution for Handling TFrecords
 
 import os
 from typing import Optional, Union
