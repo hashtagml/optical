@@ -473,7 +473,7 @@ def convert_tfrecord(
     write_label_map(id_to_class_map, output_dir)
 
     if copy_images:
-            dest_dir = output_imagedir / split
-            dest_dir.mkdir(parents=True, exist_ok=True)
+        dest_dir = output_imagedir / split
+        dest_dir.mkdir(parents=True, exist_ok=True)
 
-            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
+        _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
