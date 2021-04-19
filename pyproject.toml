@@ -57,7 +57,7 @@ tox = "^3.23.0"
 
 [tool.poetry.extras]
 docs = ["Sphinx", "sphinx-rtd-theme", "sphinx-panels"]
-tensorflow  = ["tensorflow-cpu"]
+tensorflow = ["tensorflow-cpu"]
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
