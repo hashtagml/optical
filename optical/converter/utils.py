@@ -5,6 +5,7 @@ Created: Sunday, 28th March 2021
 """
 
 import json
+import io
 import os
 import shutil
 import warnings
@@ -13,6 +14,13 @@ from typing import Any, Callable, Dict, Optional, Union
 
 import pandas as pd
 from lxml import etree as xml
+from PIL import Image
+
+_TF_INSTALLED = True
+try:
+    import tensorflow as tf
+except ImportError:
+    _TF_INSTALLED = False
 
 
 def ifnone(x: Any, y: Any, transform: Optional[Callable] = None, type_safe: bool = False):
@@ -201,3 +209,121 @@ def get_id_to_class_map(df: pd.DataFrame):
     """
     set_df = df.drop_duplicates(subset="class_id")[["category", "class_id"]]
     return set_df.set_index("class_id")["category"].to_dict()
+
+
+def _tf_parse_example(example):
+    features = {
+        "image/height": tf.io.FixedLenFeature([], tf.int64),
+        "image/width": tf.io.FixedLenFeature([], tf.int64),
+        "image/filename": tf.io.FixedLenFeature([], tf.string),
+        "image/encoded": tf.io.FixedLenFeature([], tf.string),
+        "image/format": tf.io.FixedLenFeature([], tf.string),
+        "image/object/bbox/xmin": tf.io.VarLenFeature(tf.float32),
+        "image/object/bbox/xmax": tf.io.VarLenFeature(tf.float32),
+        "image/object/bbox/ymin": tf.io.VarLenFeature(tf.float32),
+        "image/object/bbox/ymax": tf.io.VarLenFeature(tf.float32),
+        "image/object/class/text": tf.io.VarLenFeature(tf.string),
+        "image/object/class/label": tf.io.VarLenFeature(tf.int64),
+    }
+    return tf.io.parse_single_example(example, features)
+
+
+def _tf_int64_feature(value):
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+
+def _tf_bytes_feature(value):
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def _tf_float_list_feature(value):
+    return tf.train.Feature(float_list=tf.train.FloatList(value=value))
+
+
+def _tf_bytes_list_feature(value):
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=value))
+
+
+def _tf_int64_list_feature(value):
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+
+
+def create_tf_example(df: pd.DataFrame, root: Union[str, os.PathLike, PosixPath]):
+    """returns protobuf for a given image
+
+    Args:
+        df (pd.DataFrame): Dataframe of a single image with multiple records of objects
+        root (Union[str, os.PathLike, PosixPath]): root of the Image path
+
+    Returns:
+        protobuf: protobuf of each Image
+    """
+
+    img_path = os.path.join(root, "images", df["split"].iloc[0], "{}".format(df["image_id"].iloc[0]))
+    with tf.io.gfile.GFile(img_path, "rb") as fid:
+        encoded_jpg = fid.read()
+    width = df.iloc[0]["image_width"]
+    height = df.iloc[0]["image_height"]
+
+    filename = df["image_id"].iloc[0].encode("utf8")
+    image_format = b"jpg"
+    xmins = list(df["x_min"] / width)
+    xmaxs = list((df["x_max"]) / width)
+    ymins = list(df["y_min"] / height)
+    ymaxs = list((df["y_max"]) / height)
+    classes_text = [s.encode("utf8") for s in df["category"]]
+    classes = list(df["class_id"].astype(int))
+
+    tf_example = tf.train.Example(
+        features=tf.train.Features(
+            feature={
+                "image/height": _tf_int64_feature(height),
+                "image/width": _tf_int64_feature(width),
+                "image/filename": _tf_bytes_feature(filename),
+                "image/source_id": _tf_bytes_feature(filename),
+                "image/encoded": _tf_bytes_feature(encoded_jpg),
+                "image/format": _tf_bytes_feature(image_format),
+                "image/object/bbox/xmin": _tf_float_list_feature(xmins),
+                "image/object/bbox/xmax": _tf_float_list_feature(xmaxs),
+                "image/object/bbox/ymin": _tf_float_list_feature(ymins),
+                "image/object/bbox/ymax": _tf_float_list_feature(ymaxs),
+                "image/object/class/text": _tf_bytes_list_feature(classes_text),
+                "image/object/class/label": _tf_int64_list_feature(classes),
+            }
+        )
+    )
+    return tf_example
+
+
+def write_label_map(id_to_class_map: Dict, output_dir: Union[str, os.PathLike, PosixPath]):
+    """writes label_map used in tf object detection
+
+    Args:
+        id_to_class_map (Dict): mapping dictionary
+        output_dir ([type]): output path
+    """
+    with open(output_dir.joinpath("label_map.pbtxt"), "w") as f:
+        for id, cl in id_to_class_map.items():
+            f.write("item\n")
+            f.write("{\n")
+            f.write("name :'{0}'".format(str(cl)))
+            f.write("\n")
+            f.write("id :{}".format(int(id)))
+            f.write("\n")
+            f.write("display_name:'{0}'".format(str(cl)))
+            f.write("\n")
+            f.write("}\n")
+
+
+def tf_decode_image(root: Union[str, os.PathLike, PosixPath], data, split: Union[str, os.PathLike, PosixPath]):
+    """Decodes images and save in images folder under root
+
+    Args:
+        root (Union[str, os.PathLike, PosixPath]): path to root directory
+        data (tf.train.Example): single Image example
+        split (Union[str, os.PathLike, PosixPath]): split directory
+    """
+    img_filename = data["image/filename"].numpy().decode("utf-8")
+    img = data["image/encoded"].numpy()
+    im = Image.open(io.BytesIO(img))
+    im.save(str(Path(root) / "images" / split / img_filename))

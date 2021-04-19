@@ -3,6 +3,7 @@ __author__: HashTagML
 license: MIT
 Created: Tuesday, 30th March 2021
 """
+# TODO: needs better solution for Handling TFrecords
 
 import os
 from typing import Optional, Union
@@ -13,10 +14,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.model_selection import iterative_train_test_split
 
-from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo
+from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo, convert_tfrecord
 from .utils import filter_split_category, ifnone
 
 pd.options.mode.chained_assignment = None
+_TF_INSTALLED = True
+try:
+    import tensorflow as tf  # noqa: F401
+except ImportError:
+    _TF_INSTALLED = False
 
 
 class FormatSpec:
@@ -205,6 +211,17 @@ class FormatSpec:
                 output_dir=output_dir,
                 **kwargs,
             )
-
+        elif to.lower() == "tfrecord":
+            if _TF_INSTALLED:
+                return convert_tfrecord(
+                    self.master_df,
+                    self.root,
+                    has_image_split=self._has_image_split,
+                    output_dir=output_dir,
+                    save_under=save_under,
+                    copy_images=copy_images,
+                )
+            else:
+                raise ImportError("Please Install Tensorflow for tfrecord support")
         else:
             raise NotImplementedError
