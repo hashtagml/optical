@@ -80,12 +80,12 @@ def read_coco(coco_json: Union[str, os.PathLike]):
 
 def filter_split_category(df: pd.DataFrame, split: Optional[str] = None, category: Optional[str] = None):
     if split is not None:
-        df = df.query("split == @split")
+        df = df.query("split == @split").copy()
 
     if category is not None:
         if category not in df.category.unique():
             raise ValueError(f"class `{category}` is not present in annotations")
-        df = df.query("category == @category")
+        df = df.query("category == @category").copy()
 
     return df
 

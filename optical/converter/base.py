@@ -77,9 +77,8 @@ class FormatSpec:
             limit (int, optional): number of samples to plot. Defaults to 1000.
         """
 
-        df = filter_split_category(self.master_df, split, category)
+        df = filter_split_category(self.master_df, split, category).drop("image_path", axis=1)
         limit = min(min(limit, len(df)), 5000)
-        print(len(df))
         df = df.sample(n=limit, replace=False, random_state=42)
         return alt.Chart(df).mark_circle(size=30).encode(x="width", y="height", color="category")
 
