@@ -1,31 +1,3 @@
-# name: Linter
-
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
-
-# jobs:
-#   build:
-
-#     runs-on: ubuntu-latest
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Set up Python 3.8
-#       uses: actions/setup-python@v2
-#       with:
-#         python-version: 3.8
-#     - name: Install dependencies
-#       run: |
-#         python -m pip install --upgrade pip
-#         python -m pip install flake8==3.9.0
-#     - name: Lint with flake8
-#       run: |
-#         flake8 . --count --show-source --statistics
-
-
-#
 name: CI Build
 
 on:
@@ -110,16 +82,26 @@ jobs:
       #----------------------------------------------
       # try to install the project from build
       #----------------------------------------------
-      - name: Install from wheel and sdist
+      - name: Test wheel
         run: |
+          python3 -m venv wheelenv
+          source wheelenv/bin/activate
+          pip install --upgrade pip
           rm -rf dist
-          pip uninstall optical -y -q
           poetry build --format wheel
-          pip install -q --find-links dist/ optical --no-deps --no-index # install from the wheel
+          pip install -q --find-links dist/ optical --no-cache # install from the wheel
           python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'
+          deactivate
+          rm -rf wheelenv   
 
+      - name: Test sdist
+        run: |
+          python3 -m venv sdistenv
+          source sdistenv/bin/activate
+          pip install --upgrade pip
           rm -rf dist
-          pip uninstall optical -y -q
           poetry build --format sdist
-          pip install -q --find-links dist/ optical --no-deps # install from the sdist
-          python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'          
+          pip install -q --find-links dist/ optical --no-cache # install from the wheel
+          python -c 'import sys; sys.path.remove(""); import optical; print(optical.__version__)'
+          deactivate
+          rm -rf sdistenv
