@@ -601,7 +601,7 @@ optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-numpy = ">=1.17.3"
+numpy = ">=1.14.5"
 
 [[package]]
 name = "opt-einsum"
@@ -1336,7 +1336,7 @@ tensorflow = ["tensorflow-cpu"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "d3cd8b6d422f7054abc32bc3cfcc48d3aef74c39e79b1c9da4be8f8d992e64c9"
+content-hash = "1bd60f1e1301052f9803a830db78b0630ae70db6ed8b90bd67ec14b193629a08"
 
 [metadata.files]
 absl-py = [
