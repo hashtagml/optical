@@ -1,3 +1,11 @@
 from .converter import Annotation
 
-__version__ = "0.0.11"
+try:
+    from importlib.metadata import version
+except ImportError:
+    from importlib_metadata import version
+
+try:
+    __version__ = version(__name__)
+except:  # noqa
+    pass
