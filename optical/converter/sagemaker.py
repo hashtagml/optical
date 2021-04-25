@@ -20,7 +20,39 @@ class SageMaker(FormatSpec):
     """Class to handle sagemaker '.manifest' annotation transformations
 
     Args:
-        FormatSpec : Base class to inherit class attributes
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+            of the following layouts:
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── train
+                │   │   ├── 1.jpg
+                │   │   ├── 2.jpg
+                │   │   │   ...
+                │   │   └── n.jpg
+                │   ├── valid (...)
+                │   └── test (...)
+                │
+                └── annotations
+                    ├── train.manifest
+                    ├── valid.manifest
+                    └── test.manifest
+
+            or,
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── 1.jpg
+                │   ├── 2.jpg
+                │   │   ...
+                │   └── n.jpg
+                │
+                └── annotations
+                    └── label.manifest
     """
 
     def __init__(self, root: Union[str, os.PathLike]):
@@ -52,6 +84,7 @@ class SageMaker(FormatSpec):
     def _resolve_dataframe(self):
         master_data = {
             "image_id": [],
+            "image_path": [],
             "image_width": [],
             "image_height": [],
             "x_min": [],
@@ -63,11 +96,14 @@ class SageMaker(FormatSpec):
             "split": [],
         }
         for split in self._splits:
+            image_dir = self._image_dir / split if self._has_image_split else self._image_dir
+            split_value = split if self._has_image_split else "main"
 
             with open(self._annotation_dir / f"{split}.manifest") as f:
                 manifest_lines = f.readlines()
 
-            if len(manifest_lines) == 0:
+            total_data = len(manifest_lines)
+            if total_data == 0:
                 raise "input file is empty"
 
             for line in manifest_lines:
@@ -81,6 +117,7 @@ class SageMaker(FormatSpec):
                 job_name = json_line[job_metadata_key]["job-name"].split("/")[-1]
                 for annotation in json_line[job_name]["annotations"]:
                     master_data["image_id"].append(json_line["source-ref"].split("/")[-1])
+                    master_data["image_path"].append(image_dir)
                     master_data["image_height"].append(json_line[job_name]["image_size"][0]["height"])
                     master_data["image_width"].append(json_line[job_name]["image_size"][0]["width"])
                     master_data["width"].append(annotation["width"])
@@ -89,9 +126,5 @@ class SageMaker(FormatSpec):
                     master_data["y_min"].append(annotation["top"])
                     master_data["class_id"].append(str(annotation["class_id"]))
                     master_data["category"].append(class_map[str(annotation["class_id"])])
-                    if self._has_image_split:
-                        master_data["split"].append(split)
-                    else:
-                        master_data["split"].append("main")
-
+                    master_data["split"].append(split_value)
         self.master_df = pd.DataFrame(master_data)
