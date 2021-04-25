@@ -45,7 +45,8 @@ class Yolo(FormatSpec):
                     │   │   ...
                     │   └── n.txt
                     ├── valid (...)
-                    └── test (...)
+                    ├── test (...)
+                    └── dataset.yaml [Optional]
 
             or,
 
@@ -59,7 +60,11 @@ class Yolo(FormatSpec):
                 │   └── n.jpg
                 │
                 └── annotations
-                    └── label.json
+                    ├── 1.txt
+                    ├── 2.txt
+                    │ ...
+                    ├── n.txt
+                    └── dataset.yaml [Optional]
     """
 
     def __init__(self, root: Union[str, os.PathLike]):
@@ -77,6 +82,11 @@ class Yolo(FormatSpec):
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
         ann_splits = [x.name for x in Path(self._annotation_dir).iterdir() if x.is_dir()]
 
+        if not ann_splits:
+            txts = list(Path(self._annotation_dir).glob("*.txt"))
+            if len(txts):
+                return "main"
+
         if im_splits:
             self._has_image_split = True
 
@@ -86,98 +96,102 @@ class Yolo(FormatSpec):
         return ann_splits
 
     def _resolve_dataframe(self):
-        img_names = []
-        cls_ids = []
-        x_center = []
-        y_center = []
-        box_width = []
-        box_height = []
-        splits = []
-        image_height = []
-        image_width = []
-        names_category = []
-
-        for split in self._splits:
-            ann_dir_files = os.path.join(self._annotation_dir, split)
-            img_dir_files = os.path.join(self._image_dir, split)
-            txt_files = [x for x in Path(ann_dir_files).glob("*.txt")]
-            img_files = [x for x in Path(img_dir_files).glob("*.jpg")]
-
-            for txt, img in zip(txt_files, img_files):
-                file_names = os.path.basename(img)
-                image_widths, image_heights = imagesize.get(img)
-                image_height.append(image_heights)
-                image_width.append(image_widths)
-
-                with open(txt, "rt") as fd:
-                    first_line = fd.readline()
-                    class_id, x_cent, y_cent, box_widths, box_heights = first_line.split()
-                    img_names.append(file_names)
-                    x_center.append(x_cent)
-                    y_center.append(y_cent)
-                    box_width.append(box_widths)
-                    box_height.append(box_heights)
-                    cls_ids.append(class_id)
-                    splits.append(split)
-
-        for yfile in self.class_file:
-            if os.path.exists(str(yfile)):
-                with open(str(yfile)) as file:
-                    docs = yaml.load(file, Loader=yaml.FullLoader)
-                    class_names = docs["names"]
-                    for cls in cls_ids:
-                        cat = class_names[int(cls)]
-                        names_category.append(cat)
-            if not os.path.exists(str(yfile)):
-                category = [str(i) for i in cls_ids]
-                warnings.warn(
-                    "There is no yaml file which containes class info like names: ['Platelets', 'RBC', 'WBC'] in root."
-                    + "please provide yaml file or else it will take class_ids as class names."
-                )
-            else:
-                category = [c for c in names_category]
 
         master_df = pd.DataFrame(
-            list(
-                zip(
-                    img_names,
-                    image_width,
-                    image_height,
-                    cls_ids,
-                    category,
-                    x_center,
-                    y_center,
-                    box_width,
-                    box_height,
-                    splits,
-                )
-            ),
             columns=[
+                "split",
                 "image_id",
                 "image_width",
                 "image_height",
-                "class_id",
-                "category",
                 "x_min",
                 "y_min",
                 "width",
                 "height",
-                "split",
+                "category",
+                "image_path",
             ],
         )
-        if len(master_df[pd.isnull(master_df.image_id)]) > 0:
-            warnings.warn(
-                "There are annotations in your dataset for which there is no matching images"
-                + f"(in split '{split}'). These annotations will be removed during any "
-                + "computation or conversion. It is recommended that you clean your dataset."
-            )
-        for column in ["x_min", "y_min", "width", "height"]:
-            master_df[column] = master_df[column].astype(np.float32)
-        for column in ["image_width", "image_height"]:
-            master_df[column] = master_df[column].astype(np.int32)
-        for column in ["category"]:
-            master_df[column] = master_df[column].astype(str)
-        for column in ["class_id"]:
-            master_df[column] = master_df[column].astype(np.int32)
 
+        for split in self._splits:
+            image_ids = []
+            image_paths = []
+            class_ids = []
+            x_mins = []
+            y_mins = []
+            bbox_widths = []
+            bbox_heights = []
+            image_heights = []
+            image_widths = []
+
+            split = split if self._has_image_split else ""
+            annotations = Path(self._annotation_dir).joinpath(split).glob("*.txt")
+
+            for txt in annotations:
+                stem = txt.stem
+                try:
+                    img_file = list(Path(self._image_dir).joinpath(split).glob(f"{stem}*"))[0]
+                    im_width, im_height = imagesize.get(img_file)
+                    with open(txt, "r") as f:
+                        instances = f.read().strip().split("\n")
+                        for ins in instances:
+                            class_id, x, y, w, h = list(map(float, ins.split()))
+                            image_ids.append(img_file.name)
+                            image_paths.append(img_file)
+                            class_ids.append(int(class_id))
+                            x_mins.append(max(float((float(x) - w / 2) * im_width), 0))
+                            y_mins.append(max(float((y - h / 2) * im_height), 0))
+                            bbox_widths.append(float(w * im_width))
+                            bbox_heights.append(float(h * im_height))
+                            image_widths.append(im_width)
+                            image_heights.append(im_height)
+
+                except IndexError:  # if the image file does not exist
+                    pass
+
+            annots_df = pd.DataFrame(
+                list(
+                    zip(
+                        image_ids,
+                        image_paths,
+                        image_widths,
+                        image_heights,
+                        class_ids,
+                        x_mins,
+                        y_mins,
+                        bbox_widths,
+                        bbox_heights,
+                    )
+                ),
+                columns=[
+                    "image_id",
+                    "image_path",
+                    "image_width",
+                    "image_height",
+                    "class_id",
+                    "x_min",
+                    "y_min",
+                    "width",
+                    "height",
+                ],
+            )
+            annots_df["split"] = split if split else "main"
+            master_df = pd.concat([master_df, annots_df], ignore_index=True)
+
+        # get category names from `dataset.yaml`
+        try:
+            with open(Path(self._annotation_dir).joinpath("dataset.yaml")) as f:
+                label_desc = yaml.load(f, Loader=yaml.FullLoader)
+
+            categories = label_desc["names"]
+            label_map = dict(zip(range(len(categories)), categories))
+        except:
+            label_map = dict()
+            warnings.warn(f"No `dataset.yaml` file found in {self._annotation_dir}")
+
+        master_df["class_id"] = master_df["class_id"].astype(np.int32)
+
+        if label_map:
+            master_df["category"] = master_df["class_id"].map(label_map)
+        else:
+            master_df["category"] = master_df["class_id"].astype(str)
         self.master_df = master_df
