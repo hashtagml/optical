@@ -52,7 +52,7 @@ class Pascal(FormatSpec):
         box_widths = []
         box_heights = []
         splits = []
-        
+
         for split in self._splits:
             folder_files = self._annotation_dir / f"{split}"
             xml_files = [x for x in Path(folder_files).glob("*.xml")]
