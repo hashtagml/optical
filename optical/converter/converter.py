@@ -23,7 +23,7 @@ from .utils import (
     copyfile,
     get_id_to_class_map,
     ifnone,
-    write_coco_json,
+    write_json,
     write_xml,
     create_tf_example,
     write_label_map,
@@ -288,7 +288,7 @@ def convert_coco(
 
         output_file = output_labeldir / f"{split}.json"
         print(output_file)
-        write_coco_json(coco_dict, output_file)
+        write_json(coco_dict, output_file)
 
         if copy_images:
             dest_dir = output_imagedir / split
@@ -325,7 +325,7 @@ def convert_sagemaker(
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
     job_name: str = "optical",
 ):
-    """converts to sagemaker from master dataframe
+    """converts to sagemaker .manifest from master dataframe
 
     Args:
         df (pd.DataFrame): the master df
@@ -343,9 +343,11 @@ def convert_sagemaker(
 
     splits = df.split.unique().tolist()
     for split in splits:
-        output_subdir = output_labeldir
+        if split == "main":
+            output_subdir = output_labeldir
+        else:
+            output_subdir = output_labeldir / split
         output_subdir.mkdir(parents=True, exist_ok=True)
-
         split_df = df.query("split == @split").copy()
 
         # drop images missing width or height information
@@ -357,26 +359,84 @@ def convert_sagemaker(
             )
 
         split_df = split_df[pd.notnull(split_df["image_width"]) & pd.notnull(split_df["image_height"])]
-
         split_df = split_df.rename(columns={"y_min": "top", "x_min": "left"})
         id_to_class_map = get_id_to_class_map(split_df)
-
         grouped_split_df = split_df.groupby(["image_id", "image_width", "image_height"])
 
         with open(output_subdir / f"{split}.manifest", "w") as f:
-
             for image_info, grouped_info in tqdm(
                 grouped_split_df, total=grouped_split_df.ngroups, desc=f"split: {split}"
             ):
                 manifest_dic = _make_manifest_data(image_info, grouped_info, job_name, id_to_class_map)
-
                 f.write(json.dumps(manifest_dic) + "\n")
 
         if copy_images:
             dest_dir = output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
-
             _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
+
+
+def _make_createml_annotation_data(dic):
+    """ makes createML annotations of a particular image"""
+
+    category = dic["category"]
+    del dic["category"]
+    return {"label": category, "coordinates": dic}
+
+
+def convert_createml(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    copy_images: bool = False,
+    save_under: Optional[str] = None,
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+):
+    """converts to createml .json from master dataframe
+
+    Args:
+        df (pd.DataFrame): the master df
+        root (Union[str, os.PathLike, PosixPath]): root directory of the source format
+        has_image_split (bool, optional): If the images are arranged under the splits. Defaults to False.
+        copy_images (bool, optional): Whether to copy the images to a different directory. Defaults to False.
+        save_under (str, optional): Name of the folder to save the target annotations. Defaults to "labels".
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): Output directory for the target
+            annotation. Defaults to ``None``.
+    """
+    save_under = ifnone(save_under, "createml")
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
+
+    splits = df.split.unique().tolist()
+    for split in splits:
+        if split == "main":
+            output_subdir = output_labeldir
+        else:
+            output_subdir = output_labeldir / split
+        output_subdir.mkdir(parents=True, exist_ok=True)
+
+        split_df = df.query("split == @split").copy()
+        # drop images missing width or height information
+        hw_missing = split_df[pd.isnull(split_df["image_width"]) | pd.isnull(split_df["image_height"])]
+        if len(hw_missing) > 0:
+            warnings.warn(
+                f"{hw_missing['image_id'].nunique()} has height/width information missing in split `{split}`. "
+                + f"{len(hw_missing)} annotations will be removed."
+            )
+
+        split_df = split_df[pd.notnull(split_df["image_width"]) & pd.notnull(split_df["image_height"])]
+        split_df = split_df.rename(columns={"y_min": "y", "x_min": "x"})
+        grouped_split_df = split_df.groupby(["image_id"])
+
+        createml_data = []
+        for image_info, grouped_info in tqdm(grouped_split_df, total=grouped_split_df.ngroups, desc=f"split: {split}"):
+            file_result = {}
+            records = grouped_info[["category", "height", "width", "y", "x"]].to_dict("records")
+            file_result["image"] = image_info
+            # transform the records into createml annotation format
+            file_result["annotations"] = list(map(_make_createml_annotation_data, records))
+            createml_data.append(file_result)
+
+        file_path = output_subdir / f"{split}.json"
+        write_json(createml_data, file_path)
 
 
 def convert_pascal(

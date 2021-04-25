@@ -16,6 +16,7 @@ from .csv import Csv
 from .yolo import Yolo
 from .pascal import Pascal
 from .sagemaker import SageMaker
+from .createml import CreateML
 from .tfrecord import Tfrecord
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
@@ -33,6 +34,7 @@ SUPPORTED_FORMATS = {
     "sagemaker": SageMaker,
     "pascal": Pascal,
     "tfrecord": Tfrecord,
+    "createml": CreateML,
 }
 
 

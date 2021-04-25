@@ -89,5 +89,9 @@ class SageMaker(FormatSpec):
                     master_data["y_min"].append(annotation["top"])
                     master_data["class_id"].append(str(annotation["class_id"]))
                     master_data["category"].append(class_map[str(annotation["class_id"])])
-                    master_data["split"].append(split)
+                    if self._has_image_split:
+                        master_data["split"].append(split)
+                    else:
+                        master_data["split"].append("main")
+
         self.master_df = pd.DataFrame(master_data)
