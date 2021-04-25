@@ -20,6 +20,48 @@ from .utils import exists, get_image_dir, get_annotation_dir
 
 
 class Yolo(FormatSpec):
+    """Represents a YOLO annotation object.
+
+    Args:
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+           of the following layouts:
+
+           .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── train
+                │   │   ├── 1.jpg
+                │   │   ├── 2.jpg
+                │   │   │   ...
+                │   │   └── n.jpg
+                │   ├── valid (...)
+                │   └── test (...)
+                │
+                └── annotations
+                    ├── train
+                    │   ├── 1.txt
+                    │   ├── 2.txt
+                    │   │   ...
+                    │   └── n.txt
+                    ├── valid (...)
+                    └── test (...)
+
+            or,
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── 1.jpg
+                │   ├── 2.jpg
+                │   │   ...
+                │   └── n.jpg
+                │
+                └── annotations
+                    └── label.json
+    """
+
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
         self.class_file = [y for y in Path(self.root).glob("*.yaml")]
@@ -54,16 +96,19 @@ class Yolo(FormatSpec):
         image_height = []
         image_width = []
         names_category = []
+
         for split in self._splits:
             ann_dir_files = os.path.join(self._annotation_dir, split)
             img_dir_files = os.path.join(self._image_dir, split)
             txt_files = [x for x in Path(ann_dir_files).glob("*.txt")]
             img_files = [x for x in Path(img_dir_files).glob("*.jpg")]
+
             for txt, img in zip(txt_files, img_files):
                 file_names = os.path.basename(img)
                 image_widths, image_heights = imagesize.get(img)
                 image_height.append(image_heights)
                 image_width.append(image_widths)
+
                 with open(txt, "rt") as fd:
                     first_line = fd.readline()
                     class_id, x_cent, y_cent, box_widths, box_heights = first_line.split()
@@ -87,7 +132,7 @@ class Yolo(FormatSpec):
                 category = [str(i) for i in cls_ids]
                 warnings.warn(
                     "There is no yaml file which containes class info like names: ['Platelets', 'RBC', 'WBC'] in root."
-                    + "please provide yaml file or else it will take class_ids as  class names."
+                    + "please provide yaml file or else it will take class_ids as class names."
                 )
             else:
                 category = [c for c in names_category]

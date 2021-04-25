@@ -56,21 +56,8 @@ def ifnone(x: Any, y: Any, transform: Optional[Callable] = None, type_safe: bool
     return out
 
 
-def get_image_dir(root: Union[str, os.PathLike]):
-    return Path(root) / "images"
-
-
-def get_annotation_dir(root: Union[str, os.PathLike]):
-    return Path(root) / "annotations"
-
-
-def find_job_metadata_key(json_data: Dict):
-    for key in json_data.keys():
-        if key.split("-")[-1] == "metadata":
-            return key
-
-
 def exists(path: Union[str, os.PathLike]):
+    """checks for whether a directory or file exists in the specified path"""
     if Path(path).is_dir():
         return "dir"
 
@@ -80,13 +67,52 @@ def exists(path: Union[str, os.PathLike]):
     return
 
 
+def get_image_dir(root: Union[str, os.PathLike]):
+    """returns image directory given a root directory"""
+    return Path(root) / "images"
+
+
+def get_annotation_dir(root: Union[str, os.PathLike]):
+    """returns annotation directory given a root directory"""
+    return Path(root) / "annotations"
+
+
+def find_job_metadata_key(json_data: Dict):
+    """finds metadata key for sagemaker manifest format"""
+    for key in json_data.keys():
+        if key.split("-")[-1] == "metadata":
+            return key
+
+
 def read_coco(coco_json: Union[str, os.PathLike]):
+    """read a coco json and returns the images, annotations and categories dict separately"""
     with open(coco_json, "r") as f:
         coco = json.load(f)
     return coco["images"], coco["annotations"], coco["categories"]
 
 
-def filter_split_category(df: pd.DataFrame, split: Optional[str] = None, category: Optional[str] = None):
+def write_coco_json(coco_dict: Dict, filename: Union[str, os.PathLike]):
+    """writes coco json to disk"""
+    with open(filename, "w") as f:
+        json.dump(coco_dict, f, indent=2)
+
+
+def filter_split_category(
+    df: pd.DataFrame, split: Optional[str] = None, category: Optional[str] = None
+) -> pd.DataFrame:
+    """given the label df, filters the dataframe by split and/or label category
+
+    Args:
+        df (pd.DataFrame): the label dataframe.
+        split (Optional[str], optional): the dataset split e.g., ``train``, ``test`` etc. Defaults to None.
+        category (Optional[str], optional): the label category. Defaults to None.
+
+    Raises:
+        ValueError: if an unknown category is specified.
+
+    Returns:
+        pd.DataFrame: the filtered dataframe.
+    """
     if split is not None:
         df = df.query("split == @split").copy()
 
@@ -98,14 +124,17 @@ def filter_split_category(df: pd.DataFrame, split: Optional[str] = None, categor
     return df
 
 
-def write_coco_json(coco_dict: Dict, filename: Union[str, os.PathLike]):
-    with open(filename, "w") as f:
-        json.dump(coco_dict, f, indent=2)
-
-
 def copyfile(
     src: Union[str, os.PathLike], dest: Union[str, os.PathLike], filename: Optional[Union[str, os.PathLike]] = None
 ) -> None:
+    """copies a file from one path to another
+
+    Args:
+        src (Union[str, os.PathLike]): either a directory containing files or any filepath.
+        dest (Union[str, os.PathLike]): the output directory for the copy.
+        filename (Optional[Union[str, os.PathLike]], optional): If ``src`` is a directory, the name of the
+           file to copy. Defaults to None.
+    """
     if filename is not None:
         filename = Path(src) / filename
 
@@ -124,12 +153,12 @@ def write_xml(
     image_root: Union[str, os.PathLike, PosixPath],
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ) -> None:
-    """write xml files from df of the image
+    """write xml files in PASCAL VOC format given a label dataframe
 
     Args:
         df (pd.DataFrame): dataframe of the single image with multiple objects in it.
-        image_root (Union[str, os.PathLike, PosixPath]): image root directory for path in xml file
-        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory for xml files.
+        image_root (Union[str, os.PathLike, PosixPath]): path to image directory.
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): output directory
     """
     root = xml.Element("annotation")
     folder = xml.Element("folder")
@@ -212,6 +241,7 @@ def get_id_to_class_map(df: pd.DataFrame):
 
 
 def _tf_parse_example(example):
+    """parse tf examples"""
     features = {
         "image/height": tf.io.FixedLenFeature([], tf.int64),
         "image/width": tf.io.FixedLenFeature([], tf.int64),
@@ -320,7 +350,7 @@ def tf_decode_image(root: Union[str, os.PathLike, PosixPath], data, split: Union
 
     Args:
         root (Union[str, os.PathLike, PosixPath]): path to root directory
-        data (tf.train.Example): single Image example
+        data (tf.train.Example): single image example
         split (Union[str, os.PathLike, PosixPath]): split directory
     """
     img_filename = data["image/filename"].numpy().decode("utf-8")

@@ -18,6 +18,44 @@ from .utils import exists, get_annotation_dir, get_image_dir, read_coco
 
 
 class Coco(FormatSpec):
+    """Represents a COCO annotation object.
+
+    Args:
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+           of the following layouts:
+
+           .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── train
+                │   │   ├── 1.jpg
+                │   │   ├── 2.jpg
+                │   │   │   ...
+                │   │   └── n.jpg
+                │   ├── valid (...)
+                │   └── test (...)
+                │
+                └── annotations
+                    ├── train.json
+                    ├── valid.json
+                    └── test.json
+
+            or,
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── 1.jpg
+                │   ├── 2.jpg
+                │   │   ...
+                │   └── n.jpg
+                │
+                └── annotations
+                    └── label.json
+    """
+
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = Path(root)
         self._image_dir = get_image_dir(root)
@@ -30,6 +68,7 @@ class Coco(FormatSpec):
         self._resolve_dataframe()
 
     def _find_splits(self):
+        """find the splits in the dataset, will ignore splits for which no annotation is found"""
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
         ann_splits = [x.stem for x in Path(self._annotation_dir).glob("*.json")]
 
@@ -42,6 +81,7 @@ class Coco(FormatSpec):
         return ann_splits
 
     def _get_class_map(self, categories: List):
+        """map from category id to category name"""
         class_map = dict()
         for cat in categories:
             class_map[cat["id"]] = cat["name"]
