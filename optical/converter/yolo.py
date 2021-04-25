@@ -184,7 +184,7 @@ class Yolo(FormatSpec):
 
             categories = label_desc["names"]
             label_map = dict(zip(range(len(categories)), categories))
-        except:
+        except FileNotFoundError:
             label_map = dict()
             warnings.warn(f"No `dataset.yaml` file found in {self._annotation_dir}")
 
