@@ -15,6 +15,7 @@ from typing import Any, Callable, Dict, Optional, Union
 import pandas as pd
 from lxml import etree as xml
 from PIL import Image
+import xml.etree.ElementTree as ET
 
 _TF_INSTALLED = True
 try:
@@ -288,8 +289,7 @@ def create_tf_example(df: pd.DataFrame, root: Union[str, os.PathLike, PosixPath]
     Returns:
         protobuf: protobuf of each Image
     """
-
-    img_path = os.path.join(root, "images", df["split"].iloc[0], "{}".format(df["image_id"].iloc[0]))
+    img_path = str(df["image_path"].iloc[0])
     with tf.io.gfile.GFile(img_path, "rb") as fid:
         encoded_jpg = fid.read()
     width = df.iloc[0]["image_width"]
@@ -357,3 +357,44 @@ def tf_decode_image(root: Union[str, os.PathLike, PosixPath], data, split: Union
     img = data["image/encoded"].numpy()
     im = Image.open(io.BytesIO(img))
     im.save(str(Path(root) / "images" / split / img_filename))
+
+
+def read_xml(xml_folder: Union[str, os.PathLike, PosixPath], img_path: Union[str, os.PathLike, PosixPath]):
+    """read xml files in the folder and return list's of information used to construct master_df
+
+    Args:
+        xml_folder (Union[str, os.PathLike, PosixPath]): Xml file folder
+        img_path (Union[str, os.PathLike, PosixPath]): Image Directory
+    """
+    img_filenames = []
+    img_widths = []
+    img_heights = []
+    cls_names = []
+    x_mins = []
+    y_mins = []
+    box_widths = []
+    box_heights = []
+    img_paths = []
+    xml_files = [x for x in Path(xml_folder).glob("*.xml")]
+    for fxml in xml_files:
+        tree = ET.parse(fxml)
+        root = tree.getroot()
+        img_filename = root.find("filename").text
+        img_width = root.find("size").find("width").text
+        img_height = root.find("size").find("height").text
+        for obj in root.findall("object"):
+            cls_name = obj.find("name").text
+            x_min = int(obj.find("bndbox").find("xmin").text)
+            y_min = int(obj.find("bndbox").find("ymin").text)
+            box_width = int(obj.find("bndbox").find("xmax").text) - int(x_min)
+            box_height = int(obj.find("bndbox").find("ymax").text) - int(y_min)
+            img_filenames.append(img_filename)
+            img_widths.append(img_width)
+            img_heights.append(img_height)
+            cls_names.append(cls_name)
+            x_mins.append(x_min)
+            y_mins.append(y_min)
+            box_widths.append(box_width)
+            box_heights.append(box_height)
+            img_paths.append(str(img_path.joinpath(img_filename)))
+    return img_filenames, img_widths, img_heights, cls_names, x_mins, y_mins, box_widths, box_heights, img_paths

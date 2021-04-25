@@ -462,7 +462,7 @@ def convert_tfrecord(
     splits = df.split.unique().tolist()
     for split in splits:
         split_df = df.query("split == @split")
-        writer = tf.io.TFRecordWriter(str(Path(output_dir).joinpath(split + ".record")))
+        writer = tf.io.TFRecordWriter(str(Path(output_dir).joinpath(split + ".tfrecord")))
         images = split_df["image_id"].unique()
         for image in images:
             image_df = split_df.query("image_id == @image")

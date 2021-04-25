@@ -18,6 +18,21 @@ from .utils import _tf_parse_example, tf_decode_image
 
 
 class Tfrecord(FormatSpec):
+    """Represents a tfrecord annotation object.
+
+    Args:
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+           of the following layouts:
+
+           .. code-block:: bash
+
+                root
+                ├──train.tfrecord
+                ├──test.tfrecord
+                ├──valid.tfrecord
+
+    """
+
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
         self._has_image_split = False
@@ -50,6 +65,7 @@ class Tfrecord(FormatSpec):
         box_heights = []
         splits = []
         cls_ids = []
+        img_paths = []
         for split in self._splits:
             tf_record = str(Path(self.root) / f"{split}.tfrecord")
             render = tf.data.TFRecordDataset(tf_record)
@@ -76,6 +92,7 @@ class Tfrecord(FormatSpec):
                     img_widths.append(img_width)
                     cls_ids.append(data["image/object/class/label"].values[i].numpy())
                     splits.append(split)
+                    img_paths.append(self._image_dir.joinpath(split, img_filename))
             _ = Parallel(n_jobs=-1, backend="threading")(
                 delayed(tf_decode_image)(self.root, data, split) for data in dataset
             )
@@ -92,6 +109,7 @@ class Tfrecord(FormatSpec):
                     cls_names,
                     cls_ids,
                     splits,
+                    img_paths,
                 )
             ),
             columns=[
@@ -105,6 +123,7 @@ class Tfrecord(FormatSpec):
                 "category",
                 "class_id",
                 "split",
+                "image_path",
             ],
         )
 
