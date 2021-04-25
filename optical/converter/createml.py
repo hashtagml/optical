@@ -9,6 +9,7 @@ import os
 import warnings
 from pathlib import Path
 from typing import Union
+
 import imagesize
 import pandas as pd
 
