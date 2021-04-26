@@ -119,7 +119,7 @@ class CreateML(FormatSpec):
                 image_width, image_height = imagesize.get(image_path)
                 for annotation in data["annotations"]:
                     master_data["image_id"].append(image_name)
-                    master_data["image_path"].append(image_dir)
+                    master_data["image_path"].append(image_dir.joinpath(image_name))
                     master_data["width"].append(annotation["coordinates"]["width"])
                     master_data["height"].append(annotation["coordinates"]["height"])
                     master_data["x_min"].append(annotation["coordinates"]["x"])

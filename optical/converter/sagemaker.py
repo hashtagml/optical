@@ -116,8 +116,9 @@ class SageMaker(FormatSpec):
                 class_map = json_line[job_metadata_key]["class-map"]
                 job_name = json_line[job_metadata_key]["job-name"].split("/")[-1]
                 for annotation in json_line[job_name]["annotations"]:
-                    master_data["image_id"].append(json_line["source-ref"].split("/")[-1])
-                    master_data["image_path"].append(image_dir)
+                    img_name = json_line["source-ref"].split("/")[-1]
+                    master_data["image_id"].append(img_name)
+                    master_data["image_path"].append(image_dir.joinpath(img_name))
                     master_data["image_height"].append(json_line[job_name]["image_size"][0]["height"])
                     master_data["image_width"].append(json_line[job_name]["image_size"][0]["width"])
                     master_data["width"].append(annotation["width"])

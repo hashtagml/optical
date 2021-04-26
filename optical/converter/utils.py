@@ -140,7 +140,7 @@ def copyfile(
         filename = Path(src) / filename
 
     else:
-        filename = src
+        filename = Path(src)
 
     dest = Path(dest) / filename.name
     try:

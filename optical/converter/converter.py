@@ -287,7 +287,7 @@ def convert_coco(
         coco_dict["categories"] = category_list
 
         output_file = output_labeldir / f"{split}.json"
-        print(output_file)
+        # print(output_file)
         write_json(coco_dict, output_file)
 
         if copy_images:
@@ -371,7 +371,7 @@ def convert_sagemaker(
                 f.write(json.dumps(manifest_dic) + "\n")
 
         if copy_images:
-            dest_dir = output_imagedir / split
+            dest_dir = output_imagedir if split == "main" else output_imagedir / split
             dest_dir.mkdir(parents=True, exist_ok=True)
             _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
@@ -407,10 +407,7 @@ def convert_createml(
 
     splits = df.split.unique().tolist()
     for split in splits:
-        if split == "main":
-            output_subdir = output_labeldir
-        else:
-            output_subdir = output_labeldir / split
+        output_subdir = output_labeldir if split == "main" else output_labeldir / split
         output_subdir.mkdir(parents=True, exist_ok=True)
 
         split_df = df.query("split == @split").copy()
@@ -437,6 +434,11 @@ def convert_createml(
 
         file_path = output_subdir / f"{split}.json"
         write_json(createml_data, file_path)
+
+        if copy_images:
+            dest_dir = output_imagedir if split == "main" else output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
 
 def convert_pascal(
