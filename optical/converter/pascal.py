@@ -12,13 +12,58 @@ from typing import Union
 import numpy as np
 
 import pandas as pd
-import xml.etree.ElementTree as ET
 
 from .base import FormatSpec
-from .utils import exists, get_image_dir, get_annotation_dir
+from .utils import exists, get_image_dir, get_annotation_dir, read_xml
 
 
 class Pascal(FormatSpec):
+    """Represents a Pascal annotation object.
+
+    Args:
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+           of the following layouts:
+
+           .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── train
+                │   │   ├── 1.jpg
+                │   │   ├── 2.jpg
+                │   │   │   ...
+                │   │   └── n.jpg
+                │   ├── valid (...)
+                │   └── test (...)
+                │
+                └── annotations
+                    ├── train
+                    |   ├── 1.xml
+                    │   ├── 2.xml
+                    │   │   ...
+                    │   └── n.xml
+                    ├── valid (...)
+                    └── test (...)
+
+            or,
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── 1.jpg
+                │   ├── 2.jpg
+                │   │   ...
+                │   └── n.jpg
+                │
+                └── annotations
+                    ├── 1.xml
+                    ├── 2.xml
+                    │   ...
+                    └── n.xml
+
+    """
+
     def __init__(self, root: Union[str, os.PathLike]):
         self.root = root
         self._image_dir = get_image_dir(root)
@@ -43,40 +88,56 @@ class Pascal(FormatSpec):
         return ann_splits
 
     def _resolve_dataframe(self):
-        img_filenames = []
-        img_widths = []
-        img_heights = []
-        cls_names = []
-        x_mins = []
-        y_mins = []
-        box_widths = []
-        box_heights = []
-        splits = []
+        if self._has_image_split:
+            img_filenames = []
+            img_widths = []
+            img_heights = []
+            cls_names = []
+            x_mins = []
+            y_mins = []
+            box_widths = []
+            box_heights = []
+            splits = []
+            img_paths = []
 
-        for split in self._splits:
-            folder_files = self._annotation_dir / f"{split}"
-            xml_files = [x for x in Path(folder_files).glob("*.xml")]
-            for xml in xml_files:
-                tree = ET.parse(xml)
-                root = tree.getroot()
-                img_filename = root.find("filename").text
-                img_width = root.find("size").find("width").text
-                img_height = root.find("size").find("height").text
-                for obj in root.findall("object"):
-                    cls_name = obj.find("name").text
-                    x_min = int(obj.find("bndbox").find("xmin").text)
-                    y_min = int(obj.find("bndbox").find("ymin").text)
-                    box_width = int(obj.find("bndbox").find("xmax").text) - int(x_min)
-                    box_height = int(obj.find("bndbox").find("ymax").text) - int(y_min)
-                    img_filenames.append(img_filename)
-                    img_widths.append(img_width)
-                    img_heights.append(img_height)
-                    cls_names.append(cls_name)
-                    x_mins.append(x_min)
-                    y_mins.append(y_min)
-                    box_widths.append(box_width)
-                    box_heights.append(box_height)
-                    splits.append(split)
+            for split in self._splits:
+                folder_files = self._annotation_dir / f"{split}"
+                img_folder = self._image_dir / f"{split}"
+                (
+                    s_img_names,
+                    s_img_widths,
+                    s_img_heights,
+                    s_cls_names,
+                    s_x_mins,
+                    s_y_mins,
+                    s_box_widths,
+                    s_box_heights,
+                    s_img_paths,
+                ) = read_xml(folder_files, img_folder)
+                s_splits = [split for i in range(len(s_img_names))]
+                img_filenames.extend(s_img_names)
+                img_widths.extend(s_img_widths)
+                img_heights.extend(s_img_heights)
+                cls_names.extend(s_cls_names)
+                x_mins.extend(s_x_mins)
+                y_mins.extend(s_y_mins)
+                box_widths.extend(s_box_widths)
+                box_heights.extend(s_box_heights)
+                splits.extend(s_splits)
+                img_paths.extend(s_img_paths)
+        else:
+            (
+                img_filenames,
+                img_widths,
+                img_heights,
+                cls_names,
+                x_mins,
+                y_mins,
+                box_widths,
+                box_heights,
+                img_paths,
+            ) = read_xml(self._annotation_dir, self._image_dir)
+            splits = ["main" for i in range(len(img_filenames))]
 
         class_dict = dict(zip(set(cls_names), [i for i in range(1, len(set(cls_names)) + 1)]))
         class_ids = [class_dict[cate] for cate in cls_names]
@@ -93,6 +154,7 @@ class Pascal(FormatSpec):
                     cls_names,
                     class_ids,
                     splits,
+                    img_paths,
                 )
             ),
             columns=[
@@ -106,6 +168,7 @@ class Pascal(FormatSpec):
                 "category",
                 "class_id",
                 "split",
+                "image_path",
             ],
         )
         for col in ["x_min", "y_min", "width", "height"]:
