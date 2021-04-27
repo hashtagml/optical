@@ -14,7 +14,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.model_selection import iterative_train_test_split
 
-from .converter import convert_coco, convert_csv, convert_pascal, convert_sagemaker, convert_yolo, convert_tfrecord
+from .converter import (
+    convert_coco,
+    convert_csv,
+    convert_pascal,
+    convert_sagemaker,
+    convert_yolo,
+    convert_tfrecord,
+    convert_createml,
+)
 from .utils import filter_split_category, ifnone
 
 pd.options.mode.chained_assignment = None
@@ -209,6 +217,14 @@ class FormatSpec:
                 save_under=save_under,
                 output_dir=output_dir,
                 **kwargs,
+            )
+        elif to.lower() == "createml":
+            return convert_createml(
+                self.master_df,
+                self.root,
+                copy_images=copy_images,
+                save_under=save_under,
+                output_dir=output_dir,
             )
         elif to.lower() == "tfrecord":
             if _TF_INSTALLED:

@@ -92,10 +92,10 @@ def read_coco(coco_json: Union[str, os.PathLike]):
     return coco["images"], coco["annotations"], coco["categories"]
 
 
-def write_coco_json(coco_dict: Dict, filename: Union[str, os.PathLike]):
-    """writes coco json to disk"""
+def write_json(data_dict: Dict, filename: Union[str, os.PathLike]):
+    """writes json to disk"""
     with open(filename, "w") as f:
-        json.dump(coco_dict, f, indent=2)
+        json.dump(data_dict, f, indent=2)
 
 
 def filter_split_category(
@@ -140,7 +140,7 @@ def copyfile(
         filename = Path(src) / filename
 
     else:
-        filename = src
+        filename = Path(src)
 
     dest = Path(dest) / filename.name
     try:

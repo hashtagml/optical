@@ -10,14 +10,15 @@ import warnings
 from pathlib import Path
 from typing import Union
 
+import imagesize
 import pandas as pd
 
 from .base import FormatSpec
-from .utils import exists, find_job_metadata_key, get_annotation_dir, get_image_dir
+from .utils import exists, get_annotation_dir, get_image_dir
 
 
-class SageMaker(FormatSpec):
-    """Class to handle sagemaker '.manifest' annotation transformations
+class CreateML(FormatSpec):
+    """Class to handle createML json annotation transformations
 
     Args:
         root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
@@ -36,9 +37,9 @@ class SageMaker(FormatSpec):
                 │   └── test (...)
                 │
                 └── annotations
-                    ├── train.manifest
-                    ├── valid.manifest
-                    └── test.manifest
+                    ├── train.json
+                    ├── valid.json
+                    └── test.json
 
             or,
 
@@ -52,7 +53,7 @@ class SageMaker(FormatSpec):
                 │   └── n.jpg
                 │
                 └── annotations
-                    └── label.manifest
+                    └── label.json
     """
 
     def __init__(self, root: Union[str, os.PathLike]):
@@ -60,7 +61,7 @@ class SageMaker(FormatSpec):
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
-        self.format = "sagemaker"
+        self.format = "createml"
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._splits = self._find_splits()
@@ -68,7 +69,7 @@ class SageMaker(FormatSpec):
 
     def _find_splits(self):
         im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
-        ann_splits = [x.stem for x in Path(self._annotation_dir).glob("*.manifest")]
+        ann_splits = [x.stem for x in Path(self._annotation_dir).glob("*.json")]
 
         if im_splits:
             self._has_image_split = True
@@ -91,41 +92,45 @@ class SageMaker(FormatSpec):
             "y_min": [],
             "width": [],
             "height": [],
-            "class_id": [],
             "category": [],
             "split": [],
         }
+
+        # checking if there is splitting or not
+
         for split in self._splits:
             image_dir = self._image_dir / split if self._has_image_split else self._image_dir
             split_value = split if self._has_image_split else "main"
 
-            with open(self._annotation_dir / f"{split}.manifest") as f:
-                manifest_lines = f.readlines()
+            with open(self._annotation_dir / f"{split}.json", "r") as f:
+                json_data = json.load(f)
 
-            total_data = len(manifest_lines)
+            total_data = len(json_data)
             if total_data == 0:
-                raise "input file is empty"
+                raise "annotation file is empty"
 
-            for line in manifest_lines:
-                json_line = json.loads(line)
-                job_metadata_key = find_job_metadata_key(json_line)
-                assert (
-                    json_line[job_metadata_key]["type"] == "groundtruth/object-detection"
-                ), "supports object detection manifest files"
-
-                class_map = json_line[job_metadata_key]["class-map"]
-                job_name = json_line[job_metadata_key]["job-name"].split("/")[-1]
-                for annotation in json_line[job_name]["annotations"]:
-                    img_name = json_line["source-ref"].split("/")[-1]
-                    master_data["image_id"].append(img_name)
-                    master_data["image_path"].append(image_dir.joinpath(img_name))
-                    master_data["image_height"].append(json_line[job_name]["image_size"][0]["height"])
-                    master_data["image_width"].append(json_line[job_name]["image_size"][0]["width"])
-                    master_data["width"].append(annotation["width"])
-                    master_data["height"].append(annotation["height"])
-                    master_data["x_min"].append(annotation["left"])
-                    master_data["y_min"].append(annotation["top"])
-                    master_data["class_id"].append(str(annotation["class_id"]))
-                    master_data["category"].append(class_map[str(annotation["class_id"])])
+            for data in json_data:
+                image_name = data["image"]
+                image_path = image_dir / image_name
+                # check if image file exists in the image directory
+                if not image_path.is_file():
+                    warnings.warn(f"Not able to find image {image_name} in path {image_dir}.")
+                    continue
+                image_width, image_height = imagesize.get(image_path)
+                for annotation in data["annotations"]:
+                    master_data["image_id"].append(image_name)
+                    master_data["image_path"].append(image_dir.joinpath(image_name))
+                    master_data["width"].append(annotation["coordinates"]["width"])
+                    master_data["height"].append(annotation["coordinates"]["height"])
+                    master_data["x_min"].append(annotation["coordinates"]["x"])
+                    master_data["y_min"].append(annotation["coordinates"]["y"])
+                    master_data["category"].append(annotation["label"])
+                    master_data["image_height"].append(image_height)
+                    master_data["image_width"].append(image_width)
                     master_data["split"].append(split_value)
-        self.master_df = pd.DataFrame(master_data)
+
+        df = pd.DataFrame(master_data)
+        # creating class ids based on unique categories
+        class_map_df = df["category"].drop_duplicates().reset_index(drop=True).to_frame()
+        class_map_df["class_id"] = class_map_df.index.values
+        self.master_df = pd.merge(df, class_map_df, on="category")
