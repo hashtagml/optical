@@ -124,6 +124,7 @@ Tha name of the annotation file is not important in this case. But, if your form
 ```
 
 <p align="left"><img align="centre" src="assets/vis_batch.png" alt="logo" width = "500"></p>
+
 ### Split the data if required
 ```python
 >>> splits = annotation.train_test_split(test_size = 0.2, stratified = True)
