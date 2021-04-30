@@ -18,6 +18,7 @@ from .pascal import Pascal
 from .sagemaker import SageMaker
 from .createml import CreateML
 from .tfrecord import Tfrecord
+from .simple_json import SimpleJson
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
 
@@ -35,6 +36,7 @@ SUPPORTED_FORMATS = {
     "pascal": Pascal,
     "tfrecord": Tfrecord,
     "createml": CreateML,
+    "simple_json": SimpleJson,
 }
 
 

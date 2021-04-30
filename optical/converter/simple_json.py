@@ -1,0 +1,140 @@
+"""
+__author__: HashTagML
+license: MIT
+Created: Monday, 29th March 2021
+"""
+
+
+import json
+import os
+import warnings
+from pathlib import Path
+from typing import Union
+
+import imagesize
+import pandas as pd
+
+from .base import FormatSpec
+from .utils import exists, get_annotation_dir, get_image_dir
+
+
+class SimpleJson(FormatSpec):
+    """Represents a SimleJson annotation object.
+
+    Args:
+        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+           of the following layouts:
+
+           .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── train
+                │   │   ├── 1.jpg
+                │   │   ├── 2.jpg
+                │   │   │   ...
+                │   │   └── n.jpg
+                │   ├── valid (...)
+                │   └── test (...)
+                │
+                └── annotations
+                    ├── train.json
+                    ├── valid.json
+                    └── test.json
+
+            or,
+
+            .. code-block:: bash
+
+                root
+                ├── images
+                │   ├── 1.jpg
+                │   ├── 2.jpg
+                │   │   ...
+                │   └── n.jpg
+                │
+                └── annotations
+                    └── label.json
+    """
+
+    def __init__(self, root: Union[str, os.PathLike]):
+        self.root = Path(root)
+        self._image_dir = get_image_dir(root)
+        self._annotation_dir = get_annotation_dir(root)
+        self._has_image_split = False
+        self.format = "simple_json"
+        assert exists(self._image_dir), "root is missing `images` directory."
+        assert exists(self._annotation_dir), "root is missing `annotations` directory."
+        self._splits = self._find_splits()
+        self._resolve_dataframe()
+
+    def _find_splits(self):
+        """find the splits in the dataset, will ignore splits for which no annotation is found"""
+        im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
+        ann_splits = [x.stem for x in Path(self._annotation_dir).glob("*.json")]
+
+        if im_splits:
+            self._has_image_split = True
+
+        no_anns = set(im_splits).difference(ann_splits)
+        if no_anns:
+            warnings.warn(f"no annotation found for {', '.join(list(no_anns))}")
+        return ann_splits
+
+    def _resolve_dataframe(self):
+        columns = [
+            "image_id",
+            "image_path",
+            "image_width",
+            "image_height",
+            "x_min",
+            "y_min",
+            "width",
+            "height",
+            "category",
+            "score",
+        ]
+        image_ids, image_paths, image_widths, image_heights = [], [], [], []
+        x_mins, y_mins, widths, heights = [], [], [], []
+        categorys, class_ids, scores = [], [], []
+
+        for split in self._splits:
+
+            simple_json = self._annotation_dir / f"{split}.json"
+            with open(simple_json) as f:
+                annotations = json.load(f)
+            class_map = {}
+
+            num_images = len(annotations)
+            num_anns = 0
+            if num_images == 0:
+                raise RuntimeWarning(f"Annotation file {simple_json} is empty. Please check.")
+
+            for im_id, anns in annotations.items():
+                image_ids.append(im_id)
+                im_path = list(Path(self._image_dir).joinpath(split).glob(f"{im_id}"))[0]
+                im_width, im_height = imagesize.get(im_path)
+                image_paths.append(im_path)
+                image_widths.append(im_width)
+                image_heights.append(im_height)
+                if not len(anns):
+                    x_mins.append(None), y_mins.append(None), widths.append(None), heights.append(None)
+                    categorys.append(None), class_ids.append(None), scores.append(None)
+                for ann in anns:
+                    bbox = ann["bbox"]
+                    bbox[2] -= bbox[0]
+                    bbox[3] -= bbox[1]
+                    x_mins.append(bbox[0]), y_mins.append(bbox[1]), widths.append(bbox[2]), heights.append(bbox[3])
+                    category = ann["classname"]
+                    categorys.append(category)
+                    if class_map.get(category, None) is None:
+                        class_id = len(class_map)
+                        class_map[category] = class_id
+                        class_ids.append(class_id)
+                    else:
+                        class_ids.append(class_map[category])
+                    scores.append(ann["confidence"])
+                    num_anns += 1
+
+        data = {col: eval(col + "s") for col in columns}
+        self.master_df = pd.DataFrame(data=data)
