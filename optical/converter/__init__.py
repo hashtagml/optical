@@ -101,6 +101,7 @@ class Annotation:
         image_dir: Optional[Union[str, os.PathLike]] = None,
         split: Optional[str] = None,
         img_size: Optional[int] = 512,
+        **kwargs,
     ):
         if image_dir is None:
             random_split = random.choice(list(self.formatspec.master_df.split.unique()))
@@ -115,4 +116,4 @@ class Annotation:
             else:
                 image_dir = get_image_dir(self.root)
         image_dir = Path(image_dir)
-        return Visualizer(image_dir, self.formatspec.master_df, split, img_size)
+        return Visualizer(image_dir, self.formatspec.master_df, split, img_size, **kwargs)

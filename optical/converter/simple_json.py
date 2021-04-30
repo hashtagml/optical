@@ -92,11 +92,13 @@ class SimpleJson(FormatSpec):
             "width",
             "height",
             "category",
+            "class_id",
+            "split",
             "score",
         ]
         image_ids, image_paths, image_widths, image_heights = [], [], [], []
         x_mins, y_mins, widths, heights = [], [], [], []
-        categorys, class_ids, scores = [], [], []
+        categorys, class_ids, scores, splits = [], [], [], []
 
         for split in self._splits:
 
@@ -111,16 +113,23 @@ class SimpleJson(FormatSpec):
                 raise RuntimeWarning(f"Annotation file {simple_json} is empty. Please check.")
 
             for im_id, anns in annotations.items():
-                image_ids.append(im_id)
-                im_path = list(Path(self._image_dir).joinpath(split).glob(f"{im_id}"))[0]
+
+                split_path = split if self._has_image_split else ""
+                im_path = list(Path(self._image_dir).joinpath(split_path).glob(f"{im_id}"))[0]
                 im_width, im_height = imagesize.get(im_path)
-                image_paths.append(im_path)
-                image_widths.append(im_width)
-                image_heights.append(im_height)
                 if not len(anns):
+                    image_ids.append(im_id)
+                    image_paths.append(im_path)
+                    image_widths.append(im_width)
+                    image_heights.append(im_height)
                     x_mins.append(None), y_mins.append(None), widths.append(None), heights.append(None)
                     categorys.append(None), class_ids.append(None), scores.append(None)
+                    splits.append(split)
                 for ann in anns:
+                    image_ids.append(im_id)
+                    image_paths.append(im_path)
+                    image_widths.append(im_width)
+                    image_heights.append(im_height)
                     bbox = ann["bbox"]
                     bbox[2] -= bbox[0]
                     bbox[3] -= bbox[1]
@@ -134,7 +143,9 @@ class SimpleJson(FormatSpec):
                     else:
                         class_ids.append(class_map[category])
                     scores.append(ann["confidence"])
+                    splits.append(split)
                     num_anns += 1
-
-        data = {col: eval(col + "s") for col in columns}
+        data = {}
+        for col in columns:
+            data[col] = eval(col + "s")
         self.master_df = pd.DataFrame(data=data)
