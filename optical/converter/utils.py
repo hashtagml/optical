@@ -241,6 +241,35 @@ def get_id_to_class_map(df: pd.DataFrame):
     return set_df.set_index("class_id")["category"].to_dict()
 
 
+def find_splits(image_dir: Union[str, os.PathLike], annotation_dir: Union[str, os.PathLike], format: str):
+    """find the splits in the dataset, will ignore splits for which no annotation is found"""
+
+    exts = {"coco": "json", "pascal": "xml", "yolo": "txt", "sagemaker": "manifest", "createml": "json"}
+
+    ext = exts[format]
+
+    im_splits = [x.name for x in Path(image_dir).iterdir() if x.is_dir() and not x.name.startswith(".")]
+
+    if format in ("yolo", "pascal"):
+        ann_splits = [x.name for x in Path(annotation_dir).iterdir() if x.is_dir()]
+
+        if not ann_splits:
+            files = list(Path(annotation_dir).glob(f"*.{ext}"))
+            if len(files):
+                ann_splits = ["main"]
+            else:
+                raise ValueError("No annotation found. Please check the directory specified.")
+
+    else:
+        ann_splits = [x.stem for x in Path(annotation_dir).glob(f"*.{ext}")]
+
+    no_anns = set(im_splits).difference(ann_splits)
+    if no_anns:
+        warnings.warn(f"no annotation found for {', '.join(list(no_anns))}")
+
+    return ann_splits, len(im_splits) > 0
+
+
 def _tf_parse_example(example):
     """parse tf examples"""
     features = {

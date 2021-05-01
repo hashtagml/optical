@@ -6,8 +6,7 @@ Created: Wednesday, 31st March 2021
 
 import os
 
-import warnings
-from pathlib import Path
+
 from typing import Union
 import numpy as np
 
@@ -69,23 +68,10 @@ class Pascal(FormatSpec):
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
-        self.format = "pascal"
         assert exists(self._image_dir), "root is missing `images` directory."
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
-        self._splits = self._find_splits()
+        self._find_splits()
         self._resolve_dataframe()
-
-    def _find_splits(self):
-        im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
-        ann_splits = [x.name for x in Path(self._annotation_dir).iterdir() if x.is_dir()]
-
-        if im_splits:
-            self._has_image_split = True
-
-        no_anns = set(im_splits).difference(ann_splits)
-        if no_anns:
-            warnings.warn(f"no annotation found for {','.join(list(no_anns))}")
-        return ann_splits
 
     def _resolve_dataframe(self):
         if self._has_image_split:

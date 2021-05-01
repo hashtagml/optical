@@ -23,7 +23,7 @@ from .converter import (
     convert_tfrecord,
     convert_createml,
 )
-from .utils import filter_split_category, ifnone
+from .utils import filter_split_category, ifnone, find_splits
 
 pd.options.mode.chained_assignment = None
 _TF_INSTALLED = True
@@ -47,12 +47,32 @@ class FormatSpec:
         self._has_image_split = has_split
         self.master_df = df
         self.format = format
+        self._splits = None
 
     # @abstractmethod
     # removing absract class as it cannot be instantiated from within
     # as required for split
     def _resolve_dataframe(self):
         pass
+
+    def __str__(self):
+        return f"{self.format.upper()}[root:{self.root}, splits:[{', '.join(self.splits)}]]"
+
+    def __repr__(self):
+        return self.format
+
+    @property
+    def format(self):
+        return self.__module__.split(".")[-1]
+
+    @property
+    def splits(self):
+        return self._splits
+
+    def _find_splits(self):
+        splits, has_image_split = find_splits(self._image_dir, self._annotation_dir, self.format)
+        self._has_image_split = has_image_split
+        self._splits = splits
 
     def bbox_stats(self, split: Optional[str] = None, category: Optional[str] = None) -> pd.DataFrame:
         """computes bbox descriptive stats e.g., mean, std etc.
