@@ -75,25 +75,8 @@ class Yolo(FormatSpec):
         self._has_image_split = False
         assert exists(self._image_dir), "root is missing 'images' directory."
         assert exists(self._annotation_dir), "root is missing 'annotations' directory."
-        self._splits = self._find_splits()
+        self._find_splits()
         self._resolve_dataframe()
-
-    def _find_splits(self):
-        im_splits = [x.name for x in Path(self._image_dir).iterdir() if x.is_dir()]
-        ann_splits = [x.name for x in Path(self._annotation_dir).iterdir() if x.is_dir()]
-
-        if not ann_splits:
-            txts = list(Path(self._annotation_dir).glob("*.txt"))
-            if len(txts):
-                return "main"
-
-        if im_splits:
-            self._has_image_split = True
-
-        no_anns = set(im_splits).difference(ann_splits)
-        if no_anns:
-            warnings.warn(f"no annotation found for {','.join(list(no_anns))}")
-        return ann_splits
 
     def _resolve_dataframe(self):
 
