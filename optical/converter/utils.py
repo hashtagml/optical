@@ -252,8 +252,8 @@ def find_splits(image_dir: Union[str, os.PathLike], annotation_dir: Union[str, o
 
     if format in ("yolo", "pascal"):
         ann_splits = [x.name for x in Path(annotation_dir).iterdir() if x.is_dir()]
-        if not ann_splits:
 
+        if not ann_splits:
             files = list(Path(annotation_dir).glob(f"*.{ext}"))
             if len(files):
                 ann_splits = ["main"]

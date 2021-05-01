@@ -49,6 +49,16 @@ class Annotation:
         self.format = format
         self.formatspec = SUPPORTED_FORMATS[format.lower()](root)
 
+    def __str__(self):
+        return self.formatspec.__str__()
+
+    def __repr__(self):
+        return self.formatspec.__repr__()
+
+    @property
+    def splits(self):
+        return self.formatspec.splits
+
     @property
     def label_df(self):
         return self.formatspec.master_df
