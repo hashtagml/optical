@@ -55,6 +55,7 @@ pytest = "^5.2"
 sphinx-panels = "^0.5.2"
 sphinx-rtd-theme = "^0.5.1"
 tox = "^3.23.0"
+kaggle = "^1.5.12"
 
 [tool.poetry.extras]
 docs = ["Sphinx", "sphinx-rtd-theme", "sphinx-panels"]

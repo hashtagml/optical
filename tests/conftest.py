@@ -9,8 +9,11 @@ from typing import Union
 import pytest
 import numpy as np
 import pandas as pd
+
 import os
 import shutil
+
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 testdir = Path("~").expanduser().joinpath(".optical").joinpath("tests")
 
@@ -93,3 +96,25 @@ def make_df():
     df["split"] = np.random.choice(["train", "valid", "test"], size=30)
     df["image_path"] = ""
     return df
+
+
+@pytest.fixture()
+def root(fmt: str, has_split: bool):
+    if not Path(testdir).joinpath("testfiles").is_dir():
+        get_test_files()
+
+    root_ = Path(testdir) / "testfiles"
+    src_im = "has_split" if has_split else "flat"
+    dest_dir = "splits" if has_split else "flats"
+    dest = root_.joinpath(dest_dir).joinpath(fmt).joinpath("images")
+    src = Path(testdir).joinpath("testfiles").joinpath("images").joinpath(src_im)
+    shutil.copytree(src, dest, dirs_exist_ok=True)
+    return root_.joinpath(dest_dir).joinpath(fmt), fmt
+
+    # formats = ["coco", "yolo", "pascal", "createml", "sagemaker", "csv"]
+
+
+def get_test_files():
+    api = KaggleApi()
+    api.authenticate()
+    api.dataset_download_files("bishwarup/objdet-formats", path=str(testdir), unzip=True)

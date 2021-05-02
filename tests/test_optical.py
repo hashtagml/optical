@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from optical.converter.utils import find_splits
+from optical import Annotation
 
 
 @pytest.mark.parametrize("format", ["coco", "createml", "csv", "sagemaker", "yolo", "pascal"])
@@ -14,3 +15,11 @@ def test_split(dirs):
 
     assert set(splits) == set(dirs[2])
     assert has_im_split == dirs[3]
+
+
+@pytest.mark.parametrize("fmt", ["coco", "createml", "csv", "sagemaker", "yolo", "pascal"])
+@pytest.mark.parametrize("has_split", [False, True])
+def test_resolve_df(root):
+    root_, frmt = root
+    annotation = Annotation(root_, format=frmt)
+    assert len(annotation.label_df) == 439
