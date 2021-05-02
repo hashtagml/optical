@@ -103,6 +103,10 @@ class Coco(FormatSpec):
             annots_df.drop(["id", "image_id"], axis=1, inplace=True)
             annots_df.rename(columns={"file_name": "image_id"}, inplace=True)
             annots_df["split"] = split
+            split_dir = split if self._has_image_split else ""
+            annots_df["image_path"] = annots_df["image_id"].map(
+                lambda x: self.root.joinpath("images").joinpath(split_dir).joinpath(x)
+            )
 
             if len(annots_df[pd.isnull(annots_df.image_id)]) > 0:
                 warnings.warn(
@@ -112,10 +116,6 @@ class Coco(FormatSpec):
                 )
 
             master_df = pd.concat([master_df, annots_df], ignore_index=True)
-            split_dir = split if self._has_image_split else ""
-            master_df["image_path"] = master_df["image_id"].map(
-                lambda x: self.root.joinpath("images").joinpath(split_dir).joinpath(x)
-            )
 
         master_df = master_df[pd.notnull(master_df.image_id)]
         for col in ["x_min", "y_min", "width", "height"]:
