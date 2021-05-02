@@ -109,7 +109,7 @@ def root(fmt: str, has_split: bool):
     dest = root_.joinpath(dest_dir).joinpath(fmt).joinpath("images")
     src = Path(testdir).joinpath("testfiles").joinpath("images").joinpath(src_im)
     shutil.copytree(src, dest, dirs_exist_ok=True)
-    return root_.joinpath(dest_dir).joinpath(fmt), fmt
+    return root_.joinpath(dest_dir).joinpath(fmt)
 
     # formats = ["coco", "yolo", "pascal", "createml", "sagemaker", "csv"]
 

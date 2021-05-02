@@ -17,9 +17,16 @@ def test_split(dirs):
     assert has_im_split == dirs[3]
 
 
-@pytest.mark.parametrize("fmt", ["coco", "createml", "csv", "sagemaker", "yolo", "pascal"])
+@pytest.mark.parametrize("fmt", ["coco", "createml", "sagemaker", "yolo", "pascal"])
 @pytest.mark.parametrize("has_split", [False, True])
-def test_resolve_df(root):
-    root_, frmt = root
-    annotation = Annotation(root_, format=frmt)
+def test_resolve_df(root, fmt, has_split):
+
+    annotation = Annotation(root, format=fmt)
+    assert annotation.format == fmt
     assert len(annotation.label_df) == 439
+
+    if has_split:
+        assert annotation.label_df.query("split == 'train'").shape[0] == 316
+        assert annotation.label_df.query("split == 'valid'").shape[0] == 123
+
+    assert Path(annotation.label_df.image_path.iloc[0]).is_file()
