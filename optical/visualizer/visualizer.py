@@ -46,6 +46,7 @@ class Visualizer:
         dataframe: pd.DataFrame,
         split: Optional[str] = None,
         img_size: int = 512,
+        **kwargs,
     ):
         # Check images dir and dataframe
         assert check_num_imgs(images_dir), f"No images found in {(images_dir)}, Please check."
@@ -58,9 +59,13 @@ class Visualizer:
         # Initialization
         self.images_dir = images_dir
         self.resize = (img_size, img_size)
-        self.original_df = dataframe
+        self.original_df = dataframe.copy()
+        if kwargs.get("threshold", None) is not None and "score" in self.original_df.columns:
+            threshold = kwargs.get("threshold")
+            assert threshold > 0 and threshold <= 1, f"Threshold shoule be between [0.,1.],but received {threshold}"
+            self.original_df = self.original_df.query("score >= @threshold")
         if split is not None:
-            self.original_df = dataframe.query("split == @split").copy()
+            self.original_df = self.original_df.query("split == @split")
         if self.original_df.shape[0] < 1:
             warnings.warn(
                 f"There are no images to be visualized in {split}. Please check the correct split and dataframe."
@@ -296,8 +301,8 @@ class Visualizer:
                 )
                 image_names.append(img_name)
                 drawn_imgs.append(drawn_img)
-            except Exception:
-                warnings.warn(f"Could not plot bounding boxes for {img_name}")
+            except Exception as e:
+                warnings.warn(f"Could not plot bounding boxes for {img_name}: {str(e)}")
                 continue
 
         return drawn_imgs, image_names

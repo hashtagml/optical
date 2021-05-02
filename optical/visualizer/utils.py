@@ -136,6 +136,9 @@ def plot_boxes(
     """
     draw_img = np.array(img)
     for i, box in enumerate(bboxes):
+        threshold = kwargs.get("threshold", None)
+        if threshold is not None and scores[i] < threshold:
+            continue
         bbox = list(map(lambda x: max(0, int(x)), box[:-1]))
         if not isinstance(box[-1], str):
             category = class_map.get(int(box[-1]), str(int(box[-1])))

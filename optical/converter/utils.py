@@ -245,7 +245,16 @@ def find_splits(image_dir: Union[str, os.PathLike], annotation_dir: Union[str, o
     """find the splits in the dataset, will ignore splits for which no annotation is found"""
 
     # print(f"passed format: {format}")
-    exts = {"coco": "json", "pascal": "xml", "yolo": "txt", "sagemaker": "manifest", "createml": "json", "csv": "csv"}
+
+    exts = {
+        "coco": "json",
+        "csv": "csv",
+        "pascal": "xml",
+        "yolo": "txt",
+        "sagemaker": "manifest",
+        "createml": "json",
+        "simple_json": "json",
+    }
 
     ext = exts[format]
 
