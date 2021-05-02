@@ -102,7 +102,7 @@ def convert_yolo(
     dataset = dict()
 
     for split in splits:
-        output_subdir = output_labeldir / split if split != "main" else output_labeldir
+        output_subdir = output_labeldir / split if len(splits) > 1 else output_labeldir
         output_subdir.mkdir(parents=True, exist_ok=True)
 
         split_df = df.query("split == @split").copy()
@@ -472,7 +472,7 @@ def convert_pascal(
     splits = df.split.unique().tolist()
 
     for split in splits:
-        output_subdir = output_labeldir / split if split != "main" else output_labeldir
+        output_subdir = output_labeldir / split if len(splits) > 1 else output_labeldir
         output_subdir.mkdir(parents=True, exist_ok=True)
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
