@@ -244,7 +244,8 @@ def get_id_to_class_map(df: pd.DataFrame):
 def find_splits(image_dir: Union[str, os.PathLike], annotation_dir: Union[str, os.PathLike], format: str):
     """find the splits in the dataset, will ignore splits for which no annotation is found"""
 
-    exts = {"coco": "json", "pascal": "xml", "yolo": "txt", "sagemaker": "manifest", "createml": "json"}
+    # print(f"passed format: {format}")
+    exts = {"coco": "json", "pascal": "xml", "yolo": "txt", "sagemaker": "manifest", "createml": "json", "csv": "csv"}
 
     ext = exts[format]
 
