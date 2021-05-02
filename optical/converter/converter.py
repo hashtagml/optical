@@ -407,8 +407,8 @@ def convert_createml(
 
     splits = df.split.unique().tolist()
     for split in splits:
-        output_subdir = output_labeldir if split == "main" else output_labeldir / split
-        output_subdir.mkdir(parents=True, exist_ok=True)
+        # output_subdir = output_labeldir if split == "main" else output_labeldir / split
+        # output_subdir.mkdir(parents=True, exist_ok=True)
 
         split_df = df.query("split == @split").copy()
         # drop images missing width or height information
@@ -432,7 +432,7 @@ def convert_createml(
             file_result["annotations"] = list(map(_make_createml_annotation_data, records))
             createml_data.append(file_result)
 
-        file_path = output_subdir / f"{split}.json"
+        file_path = output_labeldir / f"{split}.json"
         write_json(createml_data, file_path)
 
         if copy_images:
