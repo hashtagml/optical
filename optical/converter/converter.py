@@ -102,7 +102,7 @@ def convert_yolo(
     dataset = dict()
 
     for split in splits:
-        output_subdir = output_labeldir / split
+        output_subdir = output_labeldir / split if split != "main" else output_labeldir
         output_subdir.mkdir(parents=True, exist_ok=True)
 
         split_df = df.query("split == @split").copy()
@@ -343,11 +343,11 @@ def convert_sagemaker(
 
     splits = df.split.unique().tolist()
     for split in splits:
-        if split == "main":
-            output_subdir = output_labeldir
-        else:
-            output_subdir = output_labeldir / split
-        output_subdir.mkdir(parents=True, exist_ok=True)
+        # if split == "main":
+        #     output_subdir = output_labeldir
+        # else:
+        #     output_subdir = output_labeldir / split
+        # output_subdir.mkdir(parents=True, exist_ok=True)
         split_df = df.query("split == @split").copy()
 
         # drop images missing width or height information
@@ -363,7 +363,7 @@ def convert_sagemaker(
         id_to_class_map = get_id_to_class_map(split_df)
         grouped_split_df = split_df.groupby(["image_id", "image_width", "image_height"])
 
-        with open(output_subdir / f"{split}.manifest", "w") as f:
+        with open(output_labeldir / f"{split}.manifest", "w") as f:
             for image_info, grouped_info in tqdm(
                 grouped_split_df, total=grouped_split_df.ngroups, desc=f"split: {split}"
             ):
@@ -472,7 +472,7 @@ def convert_pascal(
     splits = df.split.unique().tolist()
 
     for split in splits:
-        output_subdir = output_labeldir / split
+        output_subdir = output_labeldir / split if split != "main" else output_labeldir
         output_subdir.mkdir(parents=True, exist_ok=True)
         split_df = df.query("split == @split")
         images = split_df["image_id"].unique()
