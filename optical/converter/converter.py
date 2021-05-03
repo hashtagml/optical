@@ -549,6 +549,7 @@ def convert_simplejson(
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ) -> None:
     """converts to simple json from master df
+
     Args:
         df (pd.DataFrame): the master df
         root (Union[str, os.PathLike, PosixPath]): root directory of the source format
