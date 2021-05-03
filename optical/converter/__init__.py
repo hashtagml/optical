@@ -109,7 +109,7 @@ class Annotation:
                 split = random_split
                 warnings.warn(
                     f"Since there is not split specified explicitly, {split} has been selected randomly."
-                    + "Please pass specify split if you want to visualize different split."
+                    + "Please specify split if you want to visualize different split."
                 )
             if self.formatspec._has_image_split:
                 image_dir = get_image_dir(self.root) / split
