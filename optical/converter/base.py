@@ -7,7 +7,7 @@ Created: Tuesday, 30th March 2021
 
 import os
 from typing import Optional, Union
-
+from pathlib import Path
 import altair as alt
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -39,14 +39,14 @@ class FormatSpec:
     def __init__(
         self,
         root: Optional[Union[str, os.PathLike]] = None,
-        has_split: Optional[bool] = None,
+        has_split: Optional[bool] = False,
         df: Optional[pd.DataFrame] = None,
         format: Optional[str] = None,
     ):
-        self.root = root
+        self.root = Path(root)
         self._has_image_split = has_split
         self.master_df = df
-        self.format = format
+        self._format = format
         self._splits = None
 
     # @abstractmethod
@@ -63,7 +63,9 @@ class FormatSpec:
 
     @property
     def format(self):
-        return self.__module__.split(".")[-1]
+        if self._format is None:
+            return self.__module__.split(".")[-1]
+        return self._format
 
     @property
     def splits(self):

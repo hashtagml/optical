@@ -22,6 +22,8 @@ from .simple_json import SimpleJson
 from ..visualizer.visualizer import Visualizer
 from .utils import get_image_dir, ifnone
 
+from ..converter.base import FormatSpec
+
 _TF_INSTALLED = True
 try:
     import tensorflow as tf

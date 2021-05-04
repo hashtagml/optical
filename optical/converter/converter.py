@@ -78,7 +78,7 @@ def convert_yolo(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
     copy_images: bool = False,
-    save_under: str = "annotations",
+    save_under: Optional[str] = None,
     output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
 ):
     """converts to yolo from master dataframe
@@ -509,7 +509,7 @@ def convert_tfrecord(
     import tensorflow as tf
 
     output_dir = ifnone(output_dir, root, Path)
-    save_under = ifnone(save_under, "tfrecords")
+    save_under = ifnone(save_under, "tfrecord")
     output_dir = output_dir / save_under
     output_imagedir = output_dir / "images"
     output_dir.mkdir(parents=True, exist_ok=True)
