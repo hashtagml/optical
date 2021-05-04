@@ -2,7 +2,9 @@ name: tests
 
 on:
   push:
-    branches: [ tests/setup_tests ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   runtest:
