@@ -18,6 +18,11 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 testdir = Path("~").expanduser().joinpath(".optical").joinpath("tests")
 
 
+@pytest.fixture()
+def test_dir():
+    return testdir
+
+
 def touch(path: Union[str, os.PathLike]):
     Path(path).absolute().parent.mkdir(exist_ok=True, parents=True)
     Path(path).touch()
@@ -118,3 +123,12 @@ def get_test_files():
     api = KaggleApi()
     api.authenticate()
     api.dataset_download_files("bishwarup/objdet-formats", path=str(testdir), unzip=True)
+
+
+@pytest.fixture()
+def label_df():
+    if not Path(testdir).joinpath("testfiles").is_dir():
+        get_test_files()
+
+    df = pd.read_csv(Path(testdir).joinpath("testfiles").joinpath("label_df.csv"))
+    return df
