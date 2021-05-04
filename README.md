@@ -2,6 +2,7 @@
 
 # Optical
 ![ci build](https://github.com/hashtagml/optical/actions/workflows/build.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/hashtagml/optical/branch/main/graph/badge.svg?token=EC26I5HFQH)](https://codecov.io/gh/hashtagml/optical)
 ![Python Version](https://img.shields.io/pypi/pyversions/optical)
 [![Documentation Status](https://readthedocs.org/projects/optical/badge/?version=latest)](https://optical.readthedocs.io/en/latest/?badge=latest)
 ![GitHub all releases](https://img.shields.io/github/downloads/hashtagml/optical/total)
