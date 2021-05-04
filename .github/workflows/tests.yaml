@@ -12,6 +12,9 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
         python-version: [3.8]
     runs-on: ${{ matrix.os }}
+    env:
+      KAGGLE_USERNAME: bishwarup
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
     steps:
       #----------------------------------------------
       #       check-out repo and set-up python     
