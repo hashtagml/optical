@@ -22,6 +22,7 @@ from .converter import (
     convert_yolo,
     convert_tfrecord,
     convert_createml,
+    convert_simplejson,
 )
 from .utils import filter_split_category, ifnone, find_splits
 
@@ -242,6 +243,14 @@ class FormatSpec:
             )
         elif to.lower() == "createml":
             return convert_createml(
+                self.master_df,
+                self.root,
+                copy_images=copy_images,
+                save_under=save_under,
+                output_dir=output_dir,
+            )
+        elif to.lower() == "simple_json":
+            return convert_simplejson(
                 self.master_df,
                 self.root,
                 copy_images=copy_images,

@@ -539,3 +539,66 @@ def convert_tfrecord(
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
+
+
+def convert_simplejson(
+    df: pd.DataFrame,
+    root: Union[str, os.PathLike, PosixPath],
+    copy_images: bool = False,
+    save_under: Optional[str] = None,
+    output_dir: Optional[Union[str, os.PathLike, PosixPath]] = None,
+) -> None:
+    """converts to simple json from master df
+
+    Args:
+        df (pd.DataFrame): the master df
+        root (Union[str, os.PathLike, PosixPath]): root directory of the source format
+        has_image_split (bool, optional): If the images are arranged under the splits. Defaults to False.
+        copy_images (bool, optional): Whether to copy the images to a different directory. Defaults to False.
+        save_under (str, optional): Name of the folder to save the target annotations. Defaults to "labels".
+        output_dir (Optional[Union[str, os.PathLike, PosixPath]], optional): Output directory for the target
+            annotation. Defaults to ``None``.
+    """
+
+    save_under = ifnone(save_under, "simple_json")
+    output_imagedir, output_labeldir = _makedirs(root, save_under, output_dir)
+
+    splits = df.split.unique().tolist()
+
+    for split in splits:
+        split_df = df.query("split == @split").copy()
+        split_df_columns = split_df.columns.to_list()
+        is_score = True if "score" in split_df_columns else False
+        images = split_df["image_id"].unique().tolist()
+
+        simple_json_dict = {}
+        image_groups = split_df.groupby("image_id")
+        for image in tqdm(images, desc=f"split: {split}"):
+            image_anns = image_groups.get_group(image)
+            ann_cols = ["x_min", "y_min", "width", "height", "category"]
+            if is_score:
+                ann_cols.append("score")
+            image_anns = image_anns[ann_cols].to_dict("records")
+            simple_json_dict[image] = _create_simple_json_dict(image_anns)
+
+        output_file = output_labeldir / f"{split}.json"
+        write_json(simple_json_dict, output_file)
+
+        if copy_images:
+            dest_dir = output_imagedir / split
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
+
+
+def _create_simple_json_dict(image_anns):
+    """Makes a list of annotations in simple_json format."""
+    simple_json_anns = []
+    for ann in image_anns:
+        ann_dict = {}
+        ann_dict["bbox"] = [ann["x_min"], ann["y_min"], ann["width"] + ann["x_min"], ann["height"] + ann["y_min"]]
+        ann_dict["classname"] = ann["category"]
+        if "score" in ann.keys():
+            ann_dict["confidence"] = ann["score"]
+        simple_json_anns.append(ann_dict)
+    return simple_json_anns

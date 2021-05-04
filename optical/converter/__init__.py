@@ -81,7 +81,7 @@ class Annotation:
 
     def export(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
         if not to.lower() in SUPPORTED_FORMATS:
-            raise ValueError(f"`{format}` is not a supported conversion format")
+            raise ValueError(f"`{to}` is not a supported conversion format")
 
         return self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
 
@@ -111,7 +111,7 @@ class Annotation:
                 split = random_split
                 warnings.warn(
                     f"Since there is not split specified explicitly, {split} has been selected randomly."
-                    + "Please pass split argument if you want to visualize different split."
+                    + "Please specify split if you want to visualize different split."
                 )
             if self.formatspec._has_image_split:
                 image_dir = get_image_dir(self.root) / split
