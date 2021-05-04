@@ -99,7 +99,7 @@ class Visualizer:
             img_df = self.filtered_df[self.filtered_df["image_id"] == image_id]
         img_bboxes = []
         scores = []
-        for _, row in img_df.iterrows():
+        for row in img_df.to_dict("records"):
             is_valid_row = is_numeric_dtype(
                 pd.Series([row["x_min"], row["y_min"], row["width"], row["height"], row["class_id"]])
             )

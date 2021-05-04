@@ -127,7 +127,7 @@ class SimpleJson(FormatSpec):
                         class_ids.append(class_id)
                     else:
                         class_ids.append(class_map[category])
-                    scores.append(ann["confidence"])
+                    scores.append(ann.get("confidence", None))
                     splits.append(split)
                     num_anns += 1
         data = {}
