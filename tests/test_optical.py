@@ -14,13 +14,22 @@ from optical.converter.converter import (  # noqa: F401
     convert_createml,
     convert_sagemaker,
     convert_tfrecord,
+    convert_simple_json,
 )
 
 import pandas as pd
 import altair as alt
 
 
-EXTS = {"coco": "json", "yolo": "txt", "pascal": "xml", "createml": "json", "sagemaker": "manifest", "csv": "csv"}
+EXTS = {
+    "coco": "json",
+    "yolo": "txt",
+    "pascal": "xml",
+    "createml": "json",
+    "sagemaker": "manifest",
+    "csv": "csv",
+    "simple_json": "json",
+}
 
 
 @pytest.mark.parametrize("format", ["coco", "createml", "csv", "sagemaker", "yolo", "pascal"])
@@ -34,7 +43,7 @@ def test_split(dirs):
     assert has_im_split == dirs[3]
 
 
-@pytest.mark.parametrize("fmt", ["coco", "createml", "sagemaker", "yolo", "pascal"])
+@pytest.mark.parametrize("fmt", ["coco", "createml", "sagemaker", "yolo", "pascal", "csv", "tfrecord", "simple_json"])
 @pytest.mark.parametrize("has_split", [False, True])
 def test_resolve_df(root, fmt, has_split):
 
@@ -51,13 +60,13 @@ def test_resolve_df(root, fmt, has_split):
         assert Path(annotation.label_df.image_path.iloc[row]).is_file()
 
 
-@pytest.mark.parametrize("fmt", ["coco", "createml", "sagemaker", "yolo", "pascal", "csv"])
+@pytest.mark.parametrize("fmt", ["coco", "createml", "sagemaker", "yolo", "pascal", "csv", "simple_json"])
 def test_export(test_dir, label_df, fmt):
     exporter = eval(f"convert_{fmt}")
     export_dir = Path(test_dir).joinpath("exports")
     exporter(df=label_df, root=export_dir)
 
-    if fmt in ("coco", "createml", "csv", "sagemaker"):
+    if fmt in ("coco", "createml", "csv", "sagemaker", "simple_json"):
         assert export_dir.joinpath(fmt).joinpath("annotations").joinpath(f"train.{EXTS[fmt]}").is_file()
         assert export_dir.joinpath(fmt).joinpath("annotations").joinpath(f"valid.{EXTS[fmt]}").is_file()
     else:

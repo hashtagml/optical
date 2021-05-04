@@ -22,7 +22,7 @@ from .converter import (
     convert_yolo,
     convert_tfrecord,
     convert_createml,
-    convert_simplejson,
+    convert_simple_json,
 )
 from .utils import filter_split_category, ifnone, find_splits
 
@@ -250,7 +250,7 @@ class FormatSpec:
                 output_dir=output_dir,
             )
         elif to.lower() == "simple_json":
-            return convert_simplejson(
+            return convert_simple_json(
                 self.master_df,
                 self.root,
                 copy_images=copy_images,

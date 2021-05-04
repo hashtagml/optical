@@ -541,7 +541,7 @@ def convert_tfrecord(
         _fastcopy(split_df["image_path"].unique().tolist(), dest_dir)
 
 
-def convert_simplejson(
+def convert_simple_json(
     df: pd.DataFrame,
     root: Union[str, os.PathLike, PosixPath],
     copy_images: bool = False,
