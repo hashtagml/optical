@@ -51,12 +51,12 @@ tqdm = "^4.59.0"
 Sphinx = "^3.5.3"
 black = "^20.8b1"
 flake8 = "^3.9.0"
+kaggle = "^1.5.12"
 pytest = "^5.2"
+pytest-cov = "^2.11.1"
 sphinx-panels = "^0.5.2"
 sphinx-rtd-theme = "^0.5.1"
 tox = "^3.23.0"
-kaggle = "^1.5.12"
-pytest-cov = "^2.11.1"
 
 [tool.poetry.extras]
 docs = ["Sphinx", "sphinx-rtd-theme", "sphinx-panels"]
