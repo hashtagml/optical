@@ -1,25 +1,22 @@
+import random
 from pathlib import Path
 
-import random
+import altair as alt
+import pandas as pd
 import pytest
-
-from optical.converter.utils import find_splits
 from optical import Annotation
 from optical.converter import FormatSpec
 from optical.converter.converter import (  # noqa: F401
     convert_coco,
-    convert_yolo,
+    convert_createml,
     convert_csv,
     convert_pascal,
-    convert_createml,
     convert_sagemaker,
-    convert_tfrecord,
     convert_simple_json,
+    convert_tfrecord,
+    convert_yolo,
 )
-
-import pandas as pd
-import altair as alt
-
+from optical.converter.utils import find_splits
 
 EXTS = {
     "coco": "json",

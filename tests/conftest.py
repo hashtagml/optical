@@ -1,18 +1,11 @@
-"""
-__author__: HashTagML
-license: MIT
-Created: Thursday, 1st January 1970
-"""
-
-from pathlib import Path
-from typing import Union
-import pytest
-import numpy as np
-import pandas as pd
-
 import os
 import shutil
+from pathlib import Path
+from typing import Union
 
+import numpy as np
+import pandas as pd
+import pytest
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 testdir = Path("~").expanduser().joinpath(".optical").joinpath("tests")

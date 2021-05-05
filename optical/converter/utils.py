@@ -254,7 +254,6 @@ def find_splits(image_dir: Union[str, os.PathLike], annotation_dir: Union[str, o
         "sagemaker": "manifest",
         "createml": "json",
         "simple_json": "json",
-        "csv": "csv",
     }
 
     ext = exts[format]
