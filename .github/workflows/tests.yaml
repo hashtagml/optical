@@ -45,6 +45,12 @@ jobs:
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      
+      #-------------
+      # Upgrade pip
+      #-------------
+      - name: Update pip
+        run: poetry run pip install --upgrade pip
       #----------------------------------------------
       # install dependencies if cache does not exist 
       #----------------------------------------------
