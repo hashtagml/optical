@@ -57,7 +57,8 @@ class Csv(FormatSpec):
     """
 
     def __init__(self, root: Union[str, os.PathLike]):
-        self.root = Path(root)
+        # self.root = Path(root)
+        super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False

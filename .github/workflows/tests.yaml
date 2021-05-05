@@ -1,0 +1,65 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  runtest:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        python-version: [3.8]
+    runs-on: ${{ matrix.os }}
+    env:
+      KAGGLE_USERNAME: bishwarup
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python     
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----      
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.1.2
+        with:
+          version: 1.1.5
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      
+      #-------------
+      # Upgrade pip
+      #-------------
+      - name: Update pip
+        run: poetry run pip install --upgrade pip
+      #----------------------------------------------
+      # install dependencies if cache does not exist 
+      #----------------------------------------------
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # install your root project, if required 
+      #----------------------------------------------      
+      - name: Install library
+        run: poetry install --no-interaction --extras tensorflow
+
+      #-----------
+      # run tests
+      #-----------
+      - name: Run tests
+        run: poetry run pytest --cov=./ --cov-report=xml
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
