@@ -109,8 +109,6 @@ def root(fmt: str, has_split: bool):
     shutil.copytree(src, dest, dirs_exist_ok=True)
     return root_.joinpath(dest_dir).joinpath(fmt)
 
-    # formats = ["coco", "yolo", "pascal", "createml", "sagemaker", "csv"]
-
 
 def get_test_files():
     api = KaggleApi()

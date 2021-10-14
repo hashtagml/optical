@@ -98,7 +98,7 @@ Tha name of the annotation file is not important in this case. But, if your form
 >>> annotation.describe()
 
 | split | images | annotations | categories |
-|-------|--------|-------------|------------|
+| ----- | ------ | ----------- | ---------- |
 | train | 729    | 1121        | 3          |
 | valid | 250    | 322         | 3          |
 
@@ -166,28 +166,3 @@ If you are a Visual Studio Code user, you may choose to develop inside a contain
 1. Open the project in Visual Studio Code. in the status bar, select open in remote container.
 
 It will perhaps take a few minutes the first time you build the container.
-
-## Contributors ✨
-
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/bishwarup307"><img src="https://avatars.githubusercontent.com/u/15094759?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bishwarup Bhattacharjee</b></sub></a><br /><a href="https://github.com/hashtagml/optical/commits?author=bishwarup307" title="Code">💻</a></td>
-    <td align="center"><a href="https://www.linkedin.com/in/satheesh-katipomu/"><img src="https://avatars.githubusercontent.com/u/44122848?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Satheesh K</b></sub></a><br /><a href="https://github.com/hashtagml/optical/commits?author=satheeshkatipomu" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/bharatkumarreddy"><img src="https://avatars.githubusercontent.com/u/6673708?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bharat Kumar Reddy</b></sub></a><br /><a href="https://github.com/hashtagml/optical/commits?author=bharatkumarreddy" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/aman0044"><img src="https://avatars.githubusercontent.com/u/8287484?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aman Gupta</b></sub></a><br /><a href="https://github.com/hashtagml/optical/commits?author=aman0044" title="Code">💻</a></td>
-    
-    
-  </tr>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
