@@ -4,15 +4,12 @@ license: MIT
 Created: Monday, 29th March 2021
 """
 
-
 import os
 import warnings
-
-# from pathlib import Path
 from typing import List, Union
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .base import FormatSpec
 from .utils import exists, get_annotation_dir, get_image_dir, read_coco
@@ -58,7 +55,6 @@ class Coco(FormatSpec):
     """
 
     def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = Path(root)
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
@@ -81,7 +77,6 @@ class Coco(FormatSpec):
             columns=["image_id", "image_width", "image_height", "x_min", "y_min", "width", "height", "category"],
         )
         for split in self._splits:
-
             coco_json = self._annotation_dir / f"{split}.json"
             images, annots, cats = read_coco(coco_json)
             split_str.append([split, len(images), len(annots), len(cats)])
@@ -104,6 +99,13 @@ class Coco(FormatSpec):
             annots_df = annots_df.merge(images_df, left_on="image_id", right_on="id", how="left")
             annots_df.drop(["id", "image_id"], axis=1, inplace=True)
             annots_df.rename(columns={"file_name": "image_id"}, inplace=True)
+
+            null_images = annots_df["image_id"].isnull().sum()
+            if null_images > 0:
+                warnings.warn(
+                    "Some annotations in the dataset does not have images attached to it. Ignoring those annotations"
+                )
+            annots_df.dropna(subset=["image_id"], inplace=True)
             annots_df["split"] = split
             split_dir = split if self._has_image_split else ""
             annots_df["image_path"] = annots_df["image_id"].map(
