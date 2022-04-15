@@ -115,7 +115,7 @@ class Yolo(FormatSpec):
 
             parse_partial = partial(self._parse_txt_file, split)
             print("Loading yolo annotations:")
-            all_instances = Parallel(n_jobs=NUM_THREADS, backend="threading")(
+            all_instances = Parallel(n_jobs=NUM_THREADS, backend="multiprocessing")(
                 delayed(parse_partial)(txt) for txt in tqdm(annotations, desc=split)
             )
             for instances in all_instances:
