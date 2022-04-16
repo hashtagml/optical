@@ -98,7 +98,7 @@ class Yolo(FormatSpec):
                 "image_path",
             ],
         )
-
+        print("Loading yolo annotations:")
         for split in self._splits:
             image_ids = []
             image_paths = []
@@ -114,7 +114,6 @@ class Yolo(FormatSpec):
             annotations = Path(self._annotation_dir).joinpath(split).glob("*.txt")
 
             parse_partial = partial(self._parse_txt_file, split)
-            print("Loading yolo annotations:")
             all_instances = Parallel(n_jobs=NUM_THREADS, backend="multiprocessing")(
                 delayed(parse_partial)(txt) for txt in tqdm(annotations, desc=split)
             )
