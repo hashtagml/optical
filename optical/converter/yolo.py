@@ -7,6 +7,7 @@ Created: Monday, 29th March 2021
 
 import os
 import warnings
+from functools import partial
 from pathlib import Path
 from typing import Dict, Union
 
@@ -14,12 +15,11 @@ import imagesize
 import numpy as np
 import pandas as pd
 import yaml
-from tqdm.auto import tqdm
 from joblib import Parallel, delayed
-from functools import partial
+from tqdm.auto import tqdm
 
 from .base import FormatSpec
-from .utils import exists, get_annotation_dir, get_image_dir, NUM_THREADS
+from .utils import NUM_THREADS, exists, get_annotation_dir, get_image_dir
 
 
 class Yolo(FormatSpec):
