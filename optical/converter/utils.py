@@ -17,6 +17,7 @@ from lxml import etree as xml
 from PIL import Image
 import xml.etree.ElementTree as ET
 
+NUM_THREADS = os.cpu_count() // 2
 _TF_INSTALLED = True
 try:
     import tensorflow as tf

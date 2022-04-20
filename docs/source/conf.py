@@ -12,15 +12,17 @@
 #
 import os
 import sys
+import datetime
 
 # import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath("../.."))
+curr_year = datetime.date.today().year
 
 # -- Project information -----------------------------------------------------
 
 project = "optical"
-copyright = "2021, HashTagML"
+copyright = "2021-{curr_year}, HashTagML"
 author = "HashTagML"
 
 # The full version, including alpha/beta/rc tags
