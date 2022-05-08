@@ -10,9 +10,13 @@
 [![PyPI version](https://badge.fury.io/py/optical.svg)](https://badge.fury.io/py/optical)
 <!-- [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat)](#contributors-) -->
 
-<p align="center"><img align="centre" src="assets/optical_b.png" alt="logo" width = "650"></p>
+<p align="center"><img align="centre" src="assets/banner-dark.png" alt="logo" width = "650"></p>
 
-A collection of utilities for ML vision related tasks.
+Optical aims to be the tool right next to your hand when you work on a computer vision project. Optical does not help you with training your deep learning models neither does it perform any fancy augmentation. It's rather about making life easier for you by automating all the routine tasks that you often go through before you can actually start training your model.
+
+
+<br/>
+<br/>
 
 </div>
 
@@ -20,7 +24,7 @@ A collection of utilities for ML vision related tasks.
 
 Object detection is one of the mainstream computer vision tasks. However, when it comes to training an object detection model, there is a variety of formats that one has to deal with for different models e.g. `COCO`, `PASCAL VOC`, `Yolo` and so on. `optical` provides a simple interface to convert back and forth between these annotation formats and also perform a bunch of exploratory data analysis (EDA) on these datasets regardless of their source format.
 
-:star2: At present we support the following formats:
+At present we support the following formats 🚀:
 - [COCO](https://cocodataset.org/#format-data)
 - [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/index.html#data)
 - [Yolo](https://github.com/AlexeyAB/darknet)
@@ -32,112 +36,23 @@ Object detection is one of the mainstream computer vision tasks. However, when i
 
 ## Installation
 
-`optical` could be installed from `pip`:
+`optical` is available in PyPi and can be installed with `pip` like so.
 
 ```sh
-pip install optical
+pip install --update optical
 ```
 
 For conversion to (or from) `TFrecord`, please install the `tensorflow` extra:
 ```sh
-pip install `optical[tensorflow]`
+pip install optical[tensorflow]
 ```
 
-for visualisation of images in [mediapy](https://github.com/google/mediapy) format, you need to have [ffmpeg](https://ffmpeg.org/download.html) installed in your system.
+for visualization of images in [mediapy](https://github.com/google/mediapy) format, you need to have [ffmpeg](https://ffmpeg.org/download.html) installed in your system.
 
 
 ## Getting Started
 
-### declare the imports
-```python
-from optical import Annotation
-```
-
-### read the annotations
-```python
-annotation = Annotation(root = "/path/to/dataset", format="coco")
-```
-
-optical expects the data to be organised in either of the following layouts:
-
-```sh
-root
-├── images
-│ ├── train
-│ ├── val
-│ └── test
-└── annotations
-  ├── train.json
-  ├── val.json
-  └── test.json
-```
-
-Note that for annotation formats which require individual annotations for each images (e.g., `PASCAL VOC` or `Yolo`), 
-the `annotations` directory should also contain the same sub-directories as in `images`. The splits that do not have an annotation will be ignored.
-
-If your data does not have a split to begin with, that's acceptable too. In that case the directory layout should be like below:
-
-```sh
-root
-├── images
-│ ├── 1.jpg
-│ ├── 2.jpg
-│ ├── ...
-│ │
-│ └── 100.jpg
-│
-└── annotations
-  └── label.json
-```
-
-Tha name of the annotation file is not important in this case. But, if your format requires individual formats, the annotation files must have the identical name with that of the image.
-
-### EDA
-#### Check data distribution
-
-```python
-annotation.describe()
-
-| split | images | annotations | categories |
-| ----- | ------ | ----------- | ---------- |
-| train | 729    | 1121        | 3          |
-| valid | 250    | 322         | 3          |
-
-```
-#### Plot label distribution
-
-```python
-annotation.show_distribution()
-```
-<p align="left"><img align="centre" src="assets/show_dist.png" alt="logo" width = "300"></p>
-
-
-#### Scatter bounding box width and height
-
-```python
-annotation.bbox_scatter()
-```
-<p align="left"><img align="centre" src="assets/bbox_scatter.png" alt="logo" width = "500"></p>
-
-### Visualize images
-```python
-vis = annotation.visualizer(img_size=256)
-vis.show_batch()
-```
-
-<p align="left"><img align="centre" src="assets/vis_batch.png" alt="logo" width = "500"></p>
-
-### Split the data if required
-```python
-splits = annotation.train_test_split(test_size = 0.2, stratified = True)
-splits.save("/path/to/output/dir")
-```
-
-#### Export to other formats
-```python
-annotation.export(to = "yolo")
-```
-
+See this [quick started guide](https://optical.readthedocs.io/en/latest/overview.html) to get off the ground with optical.
 ## Contributing
 
 ### Work in local environment:

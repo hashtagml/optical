@@ -1,24 +1,20 @@
 Getting Started
-###############
+################
 
-Usage
-******
-
-
-Declare imports and read the dataset
-=====================================
+Initialize
+===========
 
 .. code-block:: python
 
     from optical import Annotation
 
     root_dir = "/path/to/dataset"
-    format = "coco"
-    annotation = Annotation(root=root_dir, foramt=format)
+    data_format = "coco"
+    annotation = Annotation(root=root_dir, foramt=data_format)
 
-optical expects the data to be organised in either of the following layouts:
+optical expects the data to be organized in either of the following layouts:
 
-.. code-block:: 
+.. code-block:: bash
 
     root
     ├── images
@@ -30,12 +26,11 @@ optical expects the data to be organised in either of the following layouts:
       ├── val.json
       └── test.json
 
-Note that for annotation formats which require individual annotations for each images (e.g., ``PASCAL VOC`` or ``Yolo``), 
-the ``annotations`` directory should also contain the same sub-directories as in ``images``. The splits that do not have an annotation will be ignored.
+Note that for annotation formats which require individual annotations for each image (e.g., ``PASCAL VOC`` or ``Yolo``),  the ``annotations`` directory should also contain the same sub-directories as in ``images``. The splits that do not have an annotation will be ignored.
 
-If your data does not have a split to begin with, that's acceptable too. In that case the directory layout should be like below:
+If your data does not have a split to begin with, that's fine. In that case the directory layout should be like below:
 
-.. code-block::
+.. code-block:: bash
 
     root
     ├── images
@@ -70,7 +65,10 @@ EDA
 
     annotation.show_distribution()
 
-.. image:: ../../assets/show_dist.png
+.. image:: _static/show_dist.png
+    :align: center
+    :width: 400
+
 
 **Scatter Plot of bounding box width and height:**
 
@@ -78,7 +76,9 @@ EDA
 
     annotation.bbox_scatter()
 
-.. image:: ../../assets/bbox_scatter.png
+.. image:: _static/bbox_scatter.png
+    :align: center
+    :width: 600
 
 Visualization
 ==============
@@ -90,7 +90,9 @@ Visualization
     vis = annotation.visualizer(img_size=256)
     vis.show_batch()
 
-.. image:: ../../assets/vis_batch.png
+.. image:: _static/vis_batch.png
+    :align: center
+    :width: 700
 
 **Filters:**
 
@@ -116,10 +118,10 @@ Splitting Dataset
 
 .. code-block:: python
 
-    splits = annotation.train_test_split(test_size = 0.2, stratified = True)
+    splits = annotation.train_test_split(test_size=0.2, stratified=True)
     splits.save("/path/to/output/dir")
 
-Exporting to other formats
+Export to other formats
 ===========================
 
 .. code-block:: python
