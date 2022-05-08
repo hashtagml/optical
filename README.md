@@ -20,7 +20,7 @@ Optical aims to be the tool right next to your hand when you work on a computer 
 
 </div>
 
-## What is optical?
+## Where is optical useful?
 
 Object detection is one of the mainstream computer vision tasks. However, when it comes to training an object detection model, there is a variety of formats that one has to deal with for different models e.g. `COCO`, `PASCAL VOC`, `Yolo` and so on. `optical` provides a simple interface to convert back and forth between these annotation formats and also perform a bunch of exploratory data analysis (EDA) on these datasets regardless of their source format.
 
@@ -39,7 +39,7 @@ At present we support the following formats 🚀:
 `optical` is available in PyPi and can be installed with `pip` like so.
 
 ```sh
-pip install --update optical
+pip install --upgrade optical
 ```
 
 For conversion to (or from) `TFrecord`, please install the `tensorflow` extra:

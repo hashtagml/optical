@@ -8,7 +8,7 @@ You can install latest stable version of optical using:
 
 :: 
     
-    pip install --update optical
+    pip install --upgrade optical
 
 From Github
 --------------
