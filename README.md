@@ -26,6 +26,7 @@ Object detection is one of the mainstream computer vision tasks. However, when i
 - [Yolo](https://github.com/AlexeyAB/darknet)
 - [TFrecord](https://www.tensorflow.org/tutorials/load_data/tfrecord)
 - [SageMaker Manifest](https://docs.aws.amazon.com/sagemaker/latest/dg/augmented-manifest.html)
+- [CreateML](https://hackernoon.com/how-to-label-data-create-ml-for-object-detection-82043957b5cb)
 - CSV
 
 
@@ -95,7 +96,7 @@ Tha name of the annotation file is not important in this case. But, if your form
 #### Check data distribution
 
 ```python
->>> annotation.describe()
+annotation.describe()
 
 | split | images | annotations | categories |
 | ----- | ------ | ----------- | ---------- |
@@ -106,7 +107,7 @@ Tha name of the annotation file is not important in this case. But, if your form
 #### Plot label distribution
 
 ```python
->>> annotation.show_distribition()
+annotation.show_distribution()
 ```
 <p align="left"><img align="centre" src="assets/show_dist.png" alt="logo" width = "300"></p>
 
@@ -114,27 +115,27 @@ Tha name of the annotation file is not important in this case. But, if your form
 #### Scatter bounding box width and height
 
 ```python
->>> annotation.bbox_scatter()
+annotation.bbox_scatter()
 ```
 <p align="left"><img align="centre" src="assets/bbox_scatter.png" alt="logo" width = "500"></p>
 
 ### Visualize images
 ```python
->>> vis = annotation.visualizer(img_size=256)
->>> vis.show_batch()
+vis = annotation.visualizer(img_size=256)
+vis.show_batch()
 ```
 
 <p align="left"><img align="centre" src="assets/vis_batch.png" alt="logo" width = "500"></p>
 
 ### Split the data if required
 ```python
->>> splits = annotation.train_test_split(test_size = 0.2, stratified = True)
->>> splits.save("/path/to/output/dir")
+splits = annotation.train_test_split(test_size = 0.2, stratified = True)
+splits.save("/path/to/output/dir")
 ```
 
 #### Export to other formats
 ```python
->>> annotation.export(to = "yolo")
+annotation.export(to = "yolo")
 ```
 
 ## Contributing
@@ -144,7 +145,7 @@ Tha name of the annotation file is not important in this case. But, if your form
 1. Fork the repo
 2. install poetry:
     ```sh
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+    curl -sSL https://install.python-poetry.org | python3 -
     ```
 
 3. work on virtual environment:

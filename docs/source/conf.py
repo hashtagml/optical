@@ -22,7 +22,7 @@ curr_year = datetime.date.today().year
 # -- Project information -----------------------------------------------------
 
 project = "optical"
-copyright = "2021-{curr_year}, HashTagML"
+copyright = f"2021-{curr_year}, HashTagML"
 author = "HashTagML"
 
 # The full version, including alpha/beta/rc tags
@@ -43,6 +43,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.viewcode",
     "sphinx_panels",
+    "sphinx_copybutton",
 ]
 
 autosummary_generate = True

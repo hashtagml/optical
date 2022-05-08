@@ -8,12 +8,13 @@ optical
 
 .. image:: _static/optical_w.png
 
-optical is a tool designed to make a bunch of routine computer vision task easy.
+optical is a tool designed to make a bunch of routine computer vision tasks easy.
 
 .. toctree::
    :maxdepth: 2
    :caption: Overview
    
+   Introduction <intro>
    Installation <install>
    Getting Started <overview>
 
