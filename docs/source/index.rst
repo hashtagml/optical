@@ -46,12 +46,7 @@ __________
    :caption: Contributing
    :hidden:
 
-   Coding Requirements <coding_requirements>
-   Issues <issues>
-   Tests <tests>
-   Setting up a Development Environment <setupdev>
-   Documentation <builddocs>
-   Pull Requests <pull_requests>
+   Guidelines <contrib>
 
 .. toctree::
    :maxdepth: 1
