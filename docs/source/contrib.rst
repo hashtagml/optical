@@ -1,37 +1,36 @@
 ..
     Adapted from https://gist.github.com/briandk/3d2e8b3ec8daf5a27a62
 
-########################
-Contributing to Optical
-########################
+###########################
+Contributing to optical 🙏
+###########################
 
-We love your input! We want to make contributing to optical as easy and transparent as possible, whether it's:
+We love your input! We want to make contributing to optical as easy and transparent as possible, whether it is:
 
-* Reporting a bug
-* Discussing the current state of the code
-* Submitting a fix
-* Proposing new features
-* Becoming a maintainer
+* Reporting a bug 🐛
+* Submitting a fix 🔧
+* Proposing new features 🚀
+* Becoming a maintainer 📌
+* A generic discussion  💬
 
-**We Develop with Github**
-
-We use github to host code, to track issues and feature requests, as well as accept pull requests.
+We use `Github↩ <https://github.com/hashtagml/optical>`_ to host code, to track issues and feature requests, as well as accept pull requests.
 
 
 Issues
 ======
 
-* Please create an issue if something is not working with the existing code or want to request a new feature.
-* Great Bug Reports tend to have:
+* Please create an issue if something is broken or could be improved with the existing code or you want to request a new feature.
+* Consider adding the following details to your issue:
   
     * A quick summary and/or background
-    * Steps to reproduce
+    * Steps to reproduce the behaviour
   
         * Be specific!
-        * Give sample code if you can.
-    * What you expected would happen
-    * What actually happens
-    * Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+        * Provide appropriate code snippets if applicable.
+        * If it's regarding a traceback, please provide the complete body of the traceback in the description.
+    * Expected behaviour
+    * Observed behaviour
+    * Notes (possibly including why you think this might be happening, or things you've tried that didn't work)
 
 
 Set up Development Environment
@@ -39,14 +38,14 @@ Set up Development Environment
 
 **Local Environment**
 
-* Fork the repo
-* Install ``poetry``
+* Fork the repository
+* We use `poetry↩ <https://python-poetry.org/>`_ to manage our dependencies and handle packaging requirements. Install ``poetry``
 
   .. code-block:: bash
 
     curl -sSL https://install.python-poetry.org | python3 -
 
-* Create a virtual Environment
+* Create a virtual environment (we prefer ``conda`` for that job)
   
   .. code-block:: bash
 
@@ -56,10 +55,11 @@ Set up Development Environment
   
   .. code-block:: bash
 
+    cd optical
     poetry install
 
 
-**VS Code Dev Container**
+**VSCode dev container**
 
 If you are a Visual Studio Code user, you may choose to develop inside a container. The benefit is the container comes with all necessary settings and dependencies configured. You will need `Docker <https://www.docker.com/>`_ installed in your system. You also need to have the `Remote - Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ extension enabled.
 
@@ -83,9 +83,11 @@ Coding requirements
 Writing tests
 =============
 
-Writing units tests is very important to ensure correctness of your changes and to make sure your changes are not breaking current behaviour unintensionally.
+Writing units tests is very important to ensure correctness of your changes and to make sure your changes are not breaking current behaviour unintentionally. 
 
-Below are the characteristics of a good unit test as mentioned `here <https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#characteristics-of-a-good-unit-test>`_
+If you are writing a new feature make sure you write unit tests for the same. We use `pytest <https://docs.pytest.org/en/7.1.x/>`_ for writing our test cases.
+
+Here are a few characteristics of a good unit test. 
 
 * **Fast**: It is not uncommon for mature projects to have thousands of unit tests. Unit tests should take very little time to run. Milliseconds.
 * **Isolated**: Unit tests are standalone, can be run in isolation, and have no dependencies on any outside factors such as a file system or database.
@@ -93,25 +95,30 @@ Below are the characteristics of a good unit test as mentioned `here <https://do
 * **Self-Checking**: The test should be able to automatically detect if it passed or failed without any human interaction.
 * **Timely**: A unit test should not take a disproportionately long time to write compared to the code being tested. If you find testing the code taking a large amount of time compared to writing the code, consider a design that is more testable.
 
-**Note**: All the tests will be run automatically through github actions whenever a pull request is raised and subsequest commits on top it.
+..note::
+  All the tests will be run automatically through github actions whenever a pull request is raised and subsequent commits on top it.
 
-Building Docs
+..tip::
+  You can read more about standard practices about writing unit test in `Microsoft docs <https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#characteristics-of-a-good-unit-test>`_.
+
+Documentation
 ==============
 
-Add/Modify documentation as required and test these changes on your local or remote container using below command 
+Please add or modify documentation supporting the changes you have made. You can test the documentation locally using:
    
 .. code-block:: bash
     
     tox -e docs #To use existing environment
-    tox --recreate -e docs #To recreate the environment
 
-Once docs build is successful, you can find built pages under ``docs/build``.
+Optionally, you can pass a tag ``--recreate`` to the above command in case you want to run a fresh build. If the build is successful, you can find your documentation under ``docs/build/html``.
 
 
-Pull Requests
+
+Pull requests
 =============
 
-* Before raising pull request please make sure you branch is up to date with main branch. Others might have merged new changes to main after you started working on your branch.
+* Before raising pull request please ensure your branch is up to date with ``main`` branch. Others might have merged new changes to ``main`` after you started working on your branch.
+* 
   Typical steps are listed below
 
     .. code-block:: bash
@@ -123,6 +130,7 @@ Pull Requests
         git rebase main # Resolve any conflicts
         git push --force origin your_branch
 
-* Raise a pull request with proper heading and description. Description should contain why this PR is being raised and what's included in the PR. You can alwasy raise `draft PR <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`_ if your work is still in progress. Choose reviewers
+* Raise a pull request with proper heading and description. Description should contain why this PR is being raised and what's included in the PR. You can always raise `draft PR <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`_ if your work is still in progress. Choose reviewers
 * Fix any issues in the tests and resolve comments/changes from reviewers
 * Maintainer will merge the PR. 
+

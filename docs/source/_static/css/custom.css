@@ -73,17 +73,25 @@ p {
     /* font-size: 1.3rem; */
     line-height: 150%;
 }
-/* 
-.section ul {
-    line-height: 30%;
-} */
+
+.btn-neutral {
+    background-color: #6ba336 !important;
+    border: 2px solid #6ba336 !important;
+    font-family: Brandon !important;
+    color: white !important;
+}
+
+.btn-neutral:hover {
+    background-color: white !important;
+    color: #2f3631 !important;
+}
 
 .fa {
     font-family: Brandon, sans-serif !important;
 }
 
 .section > ul li {
-    padding: 10px 3px;
+    padding: 1px 3px;
 }
 
 h2,
