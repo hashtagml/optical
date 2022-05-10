@@ -1,0 +1,355 @@
+/* DOM objects */
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap");
+
+:root {
+    /* misc color */
+    --nav-color: #ebf2ed;
+    --toc-nested-color: rgb(227, 227, 227);
+    /* palette */
+    --black: rgb(0, 0, 0);
+    --white: rgb(255, 255, 255);
+    --gray: rgba(155, 154, 151, 0.7);
+    --red: rgb(16, 121, 156);
+    --green: rgb(77, 171, 154);
+    --blue: rgba(82, 156, 202, 0.5);
+    --yellow: rgb(254, 184, 0);
+    --orange: #6ba336;
+    --visited: #a0baa8;
+    --light-orange: #a0baa8;
+}
+
+@font-face {
+    font-family: Brandon;
+    src: url(./AndersonGrotesk.otf);
+    font-weight: 400;
+}
+@font-face {
+    font-family: Brandon-Light;
+    src: url(./AndersonGrotesk-Light.otf);
+    font-weight: 300;
+}
+@font-face {
+    font-family: Brandon-Thin;
+    src: url(./AndersonGrotesk.otf);
+    font-weight: 100;
+}
+@font-face {
+    font-family: Brandon-Medium;
+    src: url(./AndersonGrotesk-Bold.otf);
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: Brandon-Bold;
+    src: url(./AndersonGrotesk-Bold.otf);
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: Mono;
+    src: url(./OperatorMonoLig-Book.otf);
+    /* font-weight: 300; */
+}
+
+@font-face {
+    font-family: Snippets;
+    src: url(./Dank\ Mono\ Regular.otf);
+    /* font-weight: 300; */
+}
+
+body {
+    font-family: Brandon, sans-serif;
+    /* font-size: 1.2rem; */
+    background-color: #fff;
+}
+
+h1 {
+    font-family: Brandon-Thin, sans-serif;
+    font-size: 32px;
+}
+
+p {
+    font-family: Brandon, sans-serif;
+    /* font-size: 1.3rem; */
+    line-height: 150%;
+}
+
+.btn-neutral {
+    background-color: #6ba336 !important;
+    border: 2px solid #6ba336 !important;
+    font-family: Brandon !important;
+    color: white !important;
+}
+
+.btn-neutral:hover {
+    background-color: white !important;
+    color: #2f3631 !important;
+}
+
+.fa {
+    font-family: Brandon, sans-serif !important;
+}
+
+.section > ul li {
+    padding: 1px 3px;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6,
+.rst-content .toctree-wrapper p.caption,
+legend {
+    font-family: Brandon-Medium, sans-serif;
+}
+
+/* The one with copy button */
+a.copybtn {
+    margin: 3px;
+}
+
+/* The one with links */
+a {
+    color: var(--orange);
+}
+
+a:visited {
+    color: var(--visited);
+}
+
+.rst-content .linenodiv pre,
+.rst-content div[class^="highlight"] pre,
+.rst-content pre.literal-block {
+    /* font-family: Mono; */
+    font-family: "DM Mono", monospace;
+    font-size: 16px;
+}
+
+/* The one with custom code snippets */
+.highlight .nn,
+.highlight .bp,
+.highlight .nb,
+.highlight .vm {
+    color: inherit;
+}
+
+.highlight .k {
+    color: var(--yellow);
+}
+
+.highlight .kn,
+.highlight .nv,
+.highlight .ow {
+    color: rgb(82, 156, 202);
+}
+
+.highlight .gp,
+.highlight .nd {
+    color: var(--orange);
+}
+
+.highlight .nc {
+    font-weight: bold;
+}
+
+.highlight .nc,
+.highlight .nf {
+    color: var(--red);
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+/* Nav related patch */
+
+.wy-side-nav-search {
+    padding-top: 0;
+    background-color: var(--nav-color);
+}
+
+/* The one above the toc tree */
+.wy-side-nav-search > div.version {
+    color: var(--black);
+}
+
+.wy-side-nav-search input[type="text"] {
+    width: 100%;
+    border-radius: 0;
+    padding: 6px 12px;
+    border-color: inherit;
+}
+
+/* The one with the toc tree */
+.wy-nav-side {
+    background: var(--nav-color);
+}
+
+.wy-side-scroll {
+    width: -moz-fit-content;
+    font-size: 19px;
+}
+
+/* The one with the fonts */
+.wy-menu-vertical a {
+    color: var(--black);
+    font-family: Brandon-Light, sans-serif;
+    /* font-size: 1.2rem; */
+}
+
+.wy-menu-vertical header {
+    color: var(--black);
+    font-family: Brandon, sans-serif;
+}
+
+/* The one with the text color in each toctree block */
+.wy-menu-vertical li.toctree-l2 a,
+.wy-menu-vertical li.toctree-l3 a,
+.wy-menu-vertical li.toctree-l4 a {
+    color: var(--black);
+}
+
+/* The one with toc tree section headers */
+.wy-menu-vertical li.current > a,
+.wy-menu-vertical li.on a {
+    color: #404040;
+    font-weight: 700;
+    position: relative;
+    background: var(--blue);
+}
+
+/* The selected items in the toc tree */
+.wy-menu-vertical li.current {
+    background-color: var(--toc-nested-color);
+}
+
+/* The one with all the hover */
+.wy-menu-vertical li a:hover {
+    background-color: var(--yellow);
+}
+.wy-menu-vertical li.toctree-l1 a:hover {
+    background: var(--light-orange);
+}
+.wy-menu-vertical li.toctree-l2 a:hover {
+    background: var(--light-orange);
+}
+.wy-menu-vertical li.toctree-l3 a:hover {
+    background: var(--light-orange);
+}
+.wy-menu-vertical li.toctree-l4 a:hover {
+    background: var(--light-orange);
+}
+
+/* The one with depth-2 selected toc tree block */
+.wy-menu-vertical li.toctree-l2.current > a {
+    background-color: var(--toc-nested-color);
+}
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a {
+    --gray: rgba(155, 154, 151, 0.3);
+    background-color: var(--gray);
+}
+
+/* The one with depth-3 selected toc tree block */
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a {
+    background-color: var(--gray);
+}
+
+/* Expand button */
+.wy-menu-vertical li.toctree-l2 span.toctree-expand,
+.wy-menu-vertical li.on a span.toctree-expand,
+.wy-menu-vertical li.current > a span.toctree-expand,
+.wy-menu-vertical li.toctree-l3 span.toctree-expand {
+    color: var(--black);
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+/* Content related patch */
+
+.wy-nav-content {
+    padding: 1% 10%;
+    margin: auto;
+    max-width: 100%;
+    background-color: var(--white);
+}
+
+/* The one with new line parameters */
+.rst-content dd dl.field-list.simple {
+    display: inline-table;
+    margin-bottom: inherit;
+}
+
+/* The one inside code snippets */
+.rst-content dl:not(.docutils) dt {
+    font-size: 17px;
+    font-family: Mono;
+}
+
+.rst-content code {
+    font-family: "DM Mono", monospace;
+}
+
+em {
+    font-style: normal;
+    font-stretch: narrower;
+}
+
+/* The one with the class header */
+html.writer-html4 .rst-content dl:not(.docutils) > dt,
+html.writer-html5
+    .rst-content
+    dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)
+    > dt {
+    display: table;
+    margin: 6px 0;
+    font-size: 16px;
+    font-family: "DM Mono", monospace;
+    font-style: normal !important;
+    line-height: normal;
+    background: var(--light-orange);
+    border-top: 3px solid var(--orange);
+    color: var(--orange);
+    padding: 6px;
+    position: relative;
+}
+
+html.writer-html5 .rst-content dl.field-list > dt,
+html.writer-html5 .rst-content dl.footnote > dt {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.rst-content dl:not(.docutils) dl dt {
+    border: none;
+    border-left: solid 3px #ccc;
+    margin-bottom: 10px;
+    background: #f0f0f0;
+    color: #555;
+    display: table;
+}
+
+/* The one with literal code blocks */
+.rst-content tt.literal,
+.rst-content tt.literal,
+.rst-content code.literal {
+    color: var(--red);
+}
+
+/* Class introduction "class" string at beginning */
+.rst-content dl:not(.docutils) .property {
+    font-size: 18px;
+    color: black;
+}
+
+/* class and method names in doc */
+.rst-content dl:not(.docutils) tt.descname,
+.rst-content dl:not(.docutils) tt.descclassname,
+.rst-content dl:not(.docutils) tt.descname,
+.rst-content dl:not(.docutils) code.descname,
+.rst-content dl:not(.docutils) tt.descclassname,
+.rst-content dl:not(.docutils) code.descclassname {
+    font-family: JB, sans-serif;
+    /* font-size: 21px !important; */
+}
+
+/* Method and class parameters */
+.sig-param {
+    line-height: 23px;
+}
