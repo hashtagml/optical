@@ -25,7 +25,7 @@ keywords = ["computer vision", "deep learning", "object detection"]
 license = "MIT"
 name = "optical"
 readme = "README.md"
-version = "0.0.1"
+version = "0.0.2"
 
 [tool.poetry.dependencies]
 Pillow = "^8.2.0"
