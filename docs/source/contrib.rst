@@ -95,10 +95,10 @@ Here are a few characteristics of a good unit test.
 * **Self-Checking**: The test should be able to automatically detect if it passed or failed without any human interaction.
 * **Timely**: A unit test should not take a disproportionately long time to write compared to the code being tested. If you find testing the code taking a large amount of time compared to writing the code, consider a design that is more testable.
 
-..note::
+.. note::
   All the tests will be run automatically through github actions whenever a pull request is raised and subsequent commits on top it.
 
-..tip::
+.. tip::
   You can read more about standard practices about writing unit test in `Microsoft docs <https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#characteristics-of-a-good-unit-test>`_.
 
 Documentation

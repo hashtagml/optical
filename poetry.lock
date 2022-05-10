@@ -139,6 +139,14 @@ opencv-python = ">=4.1.0"
 Pillow = ">=6.0.0"
 
 [[package]]
+name = "bump2version"
+version = "1.0.1"
+description = "Version-bump your software with a single command!"
+category = "dev"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "cachetools"
 version = "4.2.1"
 description = "Extensible memoizing collections and decorators"
@@ -1412,13 +1420,13 @@ docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "pytest-enabler", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
 
 [extras]
-docs = ["Sphinx", "sphinx-rtd-theme", "sphinx-panels"]
+docs = ["Sphinx", "sphinx-rtd-theme", "sphinx-panels", "sphinx-copybutton"]
 tensorflow = ["tensorflow-cpu"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "74cef9666d005e3274178b3eb0e7673d612e81f05648250825e871c66cb71eab"
+content-hash = "bd6b41180a8856cf3a3185021f21fc14ecef7fb2bef426e49ddd517d2d37d9f3"
 
 [metadata.files]
 absl-py = [
@@ -1466,6 +1474,10 @@ black = [
 ]
 bounding-box = [
     {file = "bounding_box-0.1.3.tar.gz", hash = "sha256:6ed5f5092da9dfc08d0203471c66aa2eee95b50d769d23d39b7eab83a1cbea7f"},
+]
+bump2version = [
+    {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
+    {file = "bump2version-1.0.1.tar.gz", hash = "sha256:762cb2bfad61f4ec8e2bdf452c7c267416f8c70dd9ecb1653fd0bbb01fa936e6"},
 ]
 cachetools = [
     {file = "cachetools-4.2.1-py3-none-any.whl", hash = "sha256:1d9d5f567be80f7c07d765e21b814326d78c61eb0c3a637dffc0e5d1796cb2e2"},

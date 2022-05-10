@@ -26,7 +26,7 @@ copyright = f"2022-{curr_year}, HashTagML"
 author = "HashTagML"
 
 # The full version, including alpha/beta/rc tags
-version = "0.1.0"
+version = "0.0.1"
 release = version
 
 
