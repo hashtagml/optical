@@ -30,21 +30,21 @@ except ImportError:
 
 def get_formatspec(format: DetectionFormat, root: Union[str, Path]) -> FormatSpec:
     if format == DetectionFormat.COCO:
-        return Coco(root)
+        return Coco(root, format=format)
     if format == DetectionFormat.CREATEML:
-        return CreateML(root)
+        return CreateML(root, format=format)
     if format == DetectionFormat.CSV:
-        return Csv(root)
+        return Csv(root, format=format)
     if format == DetectionFormat.PASCAL_VOC:
-        return Pascal(root)
+        return Pascal(root, format=format)
     if format == DetectionFormat.JSON:
-        return Json(root)
+        return Json(root, format=format)
     if format == DetectionFormat.SAGEMAKER_MANIFEST:
-        return SageMaker(root)
+        return SageMaker(root, format=format)
     if format == DetectionFormat.YOLO:
-        return Yolo(root)
+        return Yolo(root, format=format)
     if format == DetectionFormat.TFRECORD:
-        return Tfrecord(root)
+        return Tfrecord(root, format=format)
 
 
 class Annotation:

@@ -16,8 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 from tqdm.auto import tqdm
 
 from .base import FormatSpec
-from .utils import (NUM_THREADS, Pathlike, exists, get_annotation_dir,
-                    get_image_dir)
+from .utils import NUM_THREADS, Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class Pascal(FormatSpec):
@@ -67,8 +66,8 @@ class Pascal(FormatSpec):
 
     """
 
-    def __init__(self, root: Pathlike):
-        super().__init__(root)
+    def __init__(self, root: Pathlike, **kwargs):
+        super().__init__(root, **kwargs)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False

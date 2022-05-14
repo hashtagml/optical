@@ -33,8 +33,9 @@ class Tfrecord(FormatSpec):
 
     """
 
-    def __init__(self, root: Pathlike):
-        self.root = root
+    def __init__(self, root: Pathlike, **kwargs):
+        # self.root = root
+        super().__init__(root, **kwargs)
         self._has_image_split = False
         image_path = Path(root) / "images"
         image_path.mkdir(parents=True, exist_ok=True)
@@ -52,6 +53,7 @@ class Tfrecord(FormatSpec):
 
         return ann_splits
 
+    @staticmethod
     def _tf_decode_image(root: Pathlike, data: tf.train.Example, split: str):
         """Decodes images and save in images folder under root
 

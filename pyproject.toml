@@ -39,10 +39,10 @@ Pillow = "^9.1.0"
 lxml = "^4.8.0"
 tqdm = "^4.64.0"
 matplotlib = "^3.5.2"
-tensorflow-cpu = {version = "^2.8.0", optional = true}
 altair = "^4.2.0"
 scikit-multilearn = "^0.2.0"
 mediapy = "^1.0.3"
+tensorflow-cpu = {version = "^2.8.0", optional = true}
 
 [tool.poetry.extras]
 tensorflow = ["tensorflow-cpu"]
@@ -51,6 +51,15 @@ tensorflow = ["tensorflow-cpu"]
 black = "^22.3.0"
 flake8 = "^4.0.1"
 autoflake = "^1.4"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+kaggle = "^1.5.12"
+tox = "^3.25.0"
+Sphinx = "^4.5.0"
+sphinx-panels = "^0.6.0"
+sphinx-rtd-theme = "^1.0.0"
+sphinx-copybutton = "^0.5.0"
+bump2version = "^1.0.1"
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
@@ -72,7 +81,7 @@ exclude = '''
 '''
 include = '\.pyi?$'
 line-length = 119
-target-version = ['py37', 'py38']
+target-version = ['py38', 'py39', 'py310']
 
 [tool.pytest.ini_options]
 filterwarnings = [

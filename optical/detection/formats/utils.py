@@ -10,7 +10,7 @@ import shutil
 import warnings
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from joblib import Parallel, delayed
@@ -35,6 +35,17 @@ class DetectionFormat(str, Enum):
     JSON = "json"
     TFRECORD = "tfrecord"
     YOLO = "yolo"
+
+
+file_extensions = dict()
+file_extensions[DetectionFormat.COCO] = "json"
+file_extensions[DetectionFormat.CREATEML] = "json"
+file_extensions[DetectionFormat.CSV] = "csv"
+file_extensions[DetectionFormat.PASCAL_VOC] = "xml"
+file_extensions[DetectionFormat.SAGEMAKER_MANIFEST] = "manifest"
+file_extensions[DetectionFormat.JSON] = "json"
+file_extensions[DetectionFormat.TFRECORD] = "tfrecord"
+file_extensions[DetectionFormat.YOLO] = "txt"
 
 
 class CopyType(str, Enum):
@@ -85,17 +96,17 @@ def exists(path: Pathlike):
     return
 
 
-def get_image_dir(root: Pathlike):
+def get_image_dir(root: Pathlike) -> Pathlike:
     """returns image directory given a root directory"""
     return Path(root) / "images"
 
 
-def get_annotation_dir(root: Pathlike):
+def get_annotation_dir(root: Pathlike) -> Pathlike:
     """returns annotation directory given a root directory"""
     return Path(root) / "annotations"
 
 
-def write_json(data_dict: Dict, filename: Pathlike):
+def write_json(data_dict: Dict, filename: Pathlike) -> None:
     """writes json to disk"""
     with open(filename, "w") as f:
         json.dump(data_dict, f, indent=2)
@@ -139,35 +150,26 @@ def get_class_id_category_mapping(df: pd.DataFrame) -> Dict[int, str]:
     return set_df.set_index("class_id")["category"].to_dict()
 
 
-def find_splits(image_dir: Pathlike, annotation_dir: Pathlike, format: str):
-    """find the splits in the dataset, will ignore splits for which no annotation is found"""
+def find_splits(image_dir: Pathlike, annotation_dir: Pathlike, format: DetectionFormat) -> Tuple[List[str], bool]:
+    """discover the splits in the dataset, will ignore splits that have no annotation(s)"""
 
-    exts = {
-        "coco": "json",
-        "csv": "csv",
-        "pascal": "xml",
-        "yolo": "txt",
-        "sagemaker": "manifest",
-        "createml": "json",
-        "simple_json": "json",
-    }
-
-    ext = exts[format]
-
+    # check if the image directory has internal splits
     im_splits = [x.name for x in Path(image_dir).iterdir() if x.is_dir() and not x.name.startswith(".")]
 
-    if format in ("yolo", "pascal"):
+    # per image annotation formats
+    if format in (DetectionFormat.YOLO, DetectionFormat.PASCAL_VOC):
         ann_splits = [x.name for x in Path(annotation_dir).iterdir() if x.is_dir()]
 
-        if not ann_splits:
-            files = list(Path(annotation_dir).glob(f"*.{ext}"))
+        if not ann_splits:  # if flat directory
+            files = list(Path(annotation_dir).glob(f"*.{file_extensions[format]}"))
             if len(files):
                 ann_splits = ["main"]
             else:
-                raise ValueError("No annotation found. Please check the directory specified.")
+                raise ValueError(f"No annotation found in {annotation_dir}. Please check the directory layout.")
 
+    # consolidated file fornats e.g., ``coco``, ``csv`` etc.
     else:
-        ann_splits = [x.stem for x in Path(annotation_dir).glob(f"*.{ext}")]
+        ann_splits = [x.stem for x in Path(annotation_dir).glob(f"*.{file_extensions[format]}")]
 
     no_anns = set(im_splits).difference(ann_splits)
     if no_anns:
@@ -217,7 +219,7 @@ def copy_file(
             dest.symlink_to(filename)
 
 
-def copy_files(src_files: List[Pathlike], dest_dir: Pathlike, type: CopyType = CopyType.SOFT):
+def copy_files(src_files: List[Pathlike], dest_dir: Pathlike, type: CopyType = CopyType.SOFT) -> None:
 
     # NOTE: joblib is slower than serial for symlink creation
     if type == CopyType.HARD:

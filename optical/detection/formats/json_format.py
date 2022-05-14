@@ -54,8 +54,8 @@ class Json(FormatSpec):
                     └── label.json
     """
 
-    def __init__(self, root: Pathlike):
-        super().__init__(root)
+    def __init__(self, root: Pathlike, **kwargs):
+        super().__init__(root, **kwargs)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False

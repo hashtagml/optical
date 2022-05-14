@@ -70,8 +70,8 @@ class Yolo(FormatSpec):
                     └── dataset.yaml [Optional]
     """
 
-    def __init__(self, root: Pathlike):
-        super().__init__(root)
+    def __init__(self, root: Pathlike, **kwargs):
+        super().__init__(root, **kwargs)
         self.class_file = [y for y in Path(self.root).glob("*.yaml")]
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)

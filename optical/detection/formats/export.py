@@ -18,16 +18,9 @@ from lxml import etree as xml
 from sklearn.preprocessing import LabelEncoder
 from tqdm.auto import tqdm
 
-from .utils import (
-    CopyType,
-    DetectionFormat,
-    Pathlike,
-    copy_files,
-    get_class_id_category_mapping,
-    ifnone,
-    makedirs,
-    write_json,
-)
+from .utils import (CopyType, DetectionFormat, Pathlike, copy_files,
+                    get_class_id_category_mapping, ifnone, makedirs,
+                    write_json)
 
 try:
     import tensorflow as tf
@@ -62,7 +55,8 @@ def get_exporter(format: DetectionFormat) -> Exporter:
 class CocoExporter:
     """exports annotation dataframe to COCO format"""
 
-    def _make_coco_images(self, df: pd.DataFrame, image_map: Dict) -> List:
+    @staticmethod
+    def _make_coco_images(df: pd.DataFrame, image_map: Dict) -> List:
         """makes images list for coco"""
         df = copy.deepcopy(df)
         df.drop_duplicates(subset=["image_id"], keep="first", inplace=True)
@@ -76,6 +70,7 @@ class CocoExporter:
         image_list = list(df.to_dict(orient="index").values())
         return image_list
 
+    @staticmethod
     def _make_coco_annotations(df: pd.DataFrame, image_map: Dict) -> List:
         """makes annotation list for coco"""
 
@@ -93,6 +88,7 @@ class CocoExporter:
         annotation_list = list(df.to_dict(orient="index").values())
         return annotation_list
 
+    @staticmethod
     def _make_coco_categories(df: pd.DataFrame) -> List:
         """makes category list for coco"""
 
@@ -111,7 +107,7 @@ class CocoExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ) -> None:
@@ -169,7 +165,7 @@ class CreateMLExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ):
@@ -227,7 +223,7 @@ class CSVExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ):
@@ -286,7 +282,7 @@ class JsonExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ) -> None:
@@ -419,7 +415,7 @@ class PascalVOCExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ):
@@ -430,11 +426,11 @@ class PascalVOCExporter:
             df (pd.DataFrame): the annotation dataframe
             root (Pathlike): the root directory of source annotations
             copy_images (Optional[CopyType]): Whether to copy the images to target directory
-            prefix (Optional[str], optional): Directory name for the target annotations. Defaults to ``pascal``.
+            prefix (Optional[str], optional): Directory name for the target annotations. Defaults to ``pascal_voc``.
             output_dir (Optional[Pathlike], optional): Output directory. Defaults to None.
         """
 
-        prefix = ifnone(prefix, "pascal")
+        prefix = ifnone(prefix, "pascal_voc")
         output_imagedir, output_labeldir = makedirs(root, prefix, output_dir)
 
         df = copy.deepcopy(df)
@@ -490,7 +486,7 @@ class SagemakerManifestExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
         job_name: str = "optical",
@@ -508,7 +504,7 @@ class SagemakerManifestExporter:
             job_name(Optional[str]): manifest job name for the output file. Defaults to optical
         """
 
-        prefix = ifnone(prefix, "sagemaker")
+        prefix = ifnone(prefix, "sagemaker_manifest")
         output_imagedir, output_labeldir = makedirs(root, prefix, output_dir)
 
         splits = df.split.unique().tolist()
@@ -555,7 +551,7 @@ class YoloExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ):
@@ -644,6 +640,7 @@ class YoloExporter:
 class TFRecordExporter:
     """exports annotation dataframe to TFRecord format."""
 
+    @staticmethod
     def _write_label_map(id_to_class_map: Dict[int, str], output_dir: Pathlike):
         """writes label_map used in tf object detection
 
@@ -728,7 +725,7 @@ class TFRecordExporter:
         self,
         df: pd.DataFrame,
         root: Pathlike,
-        copy_images: Optional[CopyType],
+        copy_images: Optional[CopyType] = None,
         prefix: Optional[str] = None,
         output_dir: Optional[Pathlike] = None,
     ) -> None:

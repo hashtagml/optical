@@ -52,8 +52,8 @@ class SageMaker(FormatSpec):
                     └── label.manifest
     """
 
-    def __init__(self, root: Pathlike):
-        super().__init__(root)
+    def __init__(self, root: Pathlike, **kwargs):
+        super().__init__(root, **kwargs)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
         self._has_image_split = False
@@ -62,6 +62,7 @@ class SageMaker(FormatSpec):
         self._find_splits()
         self._resolve_dataframe()
 
+    @staticmethod
     def _find_job_metadata_key(json_data: Dict):
         """finds metadata key for sagemaker manifest format"""
         for key in json_data.keys():
