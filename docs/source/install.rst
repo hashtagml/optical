@@ -1,16 +1,23 @@
 Install
 ========
 
-first
-------
+From PyPI (recommended)
+-------------------------
 
-You can install the package as:
+You can install latest stable version of optical using:
 
-::
+:: 
     
-    pip install optical
+    pip install --upgrade optical
 
-second
-~~~~~~
+From Github
+--------------
+You can also install all the latest changes directly from Github, but do bear in mind that the package may be unstable in this case.
 
-lol, nothing here!
+.. code-block:: bash
+    
+    git clone https://github.com/hashtagml/optical  # clone
+    cd optical
+    curl -sSL https://install.python-poetry.org | python3 -
+    poetry install
+
