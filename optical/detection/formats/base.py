@@ -6,32 +6,30 @@ Created: Tuesday, 30th March 2021
 # TODO: needs better solution for Handling TFrecords
 
 import os
-from typing import Optional, Union
 from pathlib import Path
+from typing import Optional, Union
+
 import altair as alt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from skmultilearn.model_selection import iterative_train_test_split
 
-from .converter import (
-    convert_coco,
-    convert_csv,
-    convert_pascal,
-    convert_sagemaker,
-    convert_yolo,
-    convert_tfrecord,
-    convert_createml,
-    convert_simple_json,
-)
-from .utils import filter_split_category, ifnone, find_splits
+from .export import get_exporter
+# from .converter import (
+#     convert_coco,
+#     convert_createml,
+#     convert_csv,
+#     convert_pascal,
+#     convert_sagemaker,
+#     convert_simple_json,
+#     convert_tfrecord,
+#     convert_yolo,
+# )
+from .utils import (CopyType, DetectionFormat, Pathlike, find_splits, ifnone,
+                    partiion_df)
 
 pd.options.mode.chained_assignment = None
-_TF_INSTALLED = True
-try:
-    import tensorflow as tf  # noqa: F401
-except ImportError:
-    _TF_INSTALLED = False
 
 
 class FormatSpec:
@@ -87,7 +85,7 @@ class FormatSpec:
         Returns:
             pd.DataFrame: stats of the bounding boxes
         """
-        df = filter_split_category(self.master_df, split, category)
+        df = partiion_df(self.master_df, split, category)
         return df[["x_min", "y_min", "width", "height"]].describe()
 
     def show_distribution(self) -> alt.Chart:
@@ -114,7 +112,7 @@ class FormatSpec:
             limit (int, optional): number of samples to plot. Defaults to 1000.
         """
 
-        df = filter_split_category(self.master_df, split, category).drop("image_path", axis=1)
+        df = partiion_df(self.master_df, split, category).drop("image_path", axis=1)
         limit = min(min(limit, len(df)), 5000)
         df = df.sample(n=limit, replace=False, random_state=42)
         return alt.Chart(df).mark_circle(size=30).encode(x="width", y="height", color="category")
@@ -143,8 +141,8 @@ class FormatSpec:
 
         Args:
             test_size (float, optional): Fraction of total images to be kept for validation. Defaults to 0.2.
-            stratified (bool, optional): Whether to stratify the split. Defaults to False.
-            random_state (int, optional): random state for the split. Defaults to 42.
+            stratified (bool, optional): Whether to stratify the data splits. Defaults to False.
+            random_state (int, optional): Random state for the split. Defaults to 42.
 
         Returns:
             FormatSpec: Returns an instance of `FormatSpec` class
@@ -195,79 +193,86 @@ class FormatSpec:
     def convert(
         self,
         to: str,
-        output_dir: Optional[str] = None,
-        save_under: Optional[str] = None,
-        copy_images: bool = False,
+        output_dir: Optional[Pathlike] = None,
+        prefix: Optional[str] = None,
+        copy_images: Optional[CopyType] = None,
         **kwargs,
     ):
-        if to.lower() == "yolo":
-            return convert_yolo(
-                self.master_df,
-                self.root,
-                copy_images=copy_images,
-                save_under=save_under,
-                output_dir=output_dir,
-            )
-        elif to.lower() == "coco":
-            return convert_coco(
-                self.master_df,
-                self.root,
-                copy_images=copy_images,
-                save_under=save_under,
-                output_dir=output_dir,
-            )
-        elif to.lower() == "pascal":
-            return convert_pascal(
-                self.master_df,
-                self.root,
-                output_dir=output_dir,
-                save_under=save_under,
-                copy_images=copy_images,
-            )
-        elif to.lower() == "csv":
-            return convert_csv(
-                self.master_df,
-                self.root,
-                output_dir=output_dir,
-                save_under=save_under,
-                copy_images=copy_images,
-            )
-        elif to.lower() == "sagemaker":
-            return convert_sagemaker(
-                self.master_df,
-                self.root,
-                copy_images=copy_images,
-                save_under=save_under,
-                output_dir=output_dir,
-                **kwargs,
-            )
-        elif to.lower() == "createml":
-            return convert_createml(
-                self.master_df,
-                self.root,
-                copy_images=copy_images,
-                save_under=save_under,
-                output_dir=output_dir,
-            )
-        elif to.lower() == "simple_json":
-            return convert_simple_json(
-                self.master_df,
-                self.root,
-                copy_images=copy_images,
-                save_under=save_under,
-                output_dir=output_dir,
-            )
-        elif to.lower() == "tfrecord":
-            if _TF_INSTALLED:
-                return convert_tfrecord(
-                    self.master_df,
-                    self.root,
-                    has_image_split=self._has_image_split,
-                    output_dir=output_dir,
-                    save_under=save_under,
-                    copy_images=copy_images,
-                )
-            else:
-                raise ImportError("Please Install Tensorflow for tfrecord support")
-        else:
-            raise NotImplementedError
+        dest_format = DetectionFormat(to)
+        exporter = get_exporter(dest_format)
+        exporter.export(
+            df=self.master_df, root=self.root, output_dir=output_dir, prefix=prefix, copy_images=copy_images
+        )
+
+        # pass
+        # if to.lower() == "yolo":
+        #     return convert_yolo(
+        #         self.master_df,
+        #         self.root,
+        #         copy_images=copy_images,
+        #         save_under=save_under,
+        #         output_dir=output_dir,
+        #     )
+        # elif to.lower() == "coco":
+        #     return convert_coco(
+        #         self.master_df,
+        #         self.root,
+        #         copy_images=copy_images,
+        #         save_under=save_under,
+        #         output_dir=output_dir,
+        #     )
+        # elif to.lower() == "pascal":
+        #     return convert_pascal(
+        #         self.master_df,
+        #         self.root,
+        #         output_dir=output_dir,
+        #         save_under=save_under,
+        #         copy_images=copy_images,
+        #     )
+        # elif to.lower() == "csv":
+        #     return convert_csv(
+        #         self.master_df,
+        #         self.root,
+        #         output_dir=output_dir,
+        #         save_under=save_under,
+        #         copy_images=copy_images,
+        #     )
+        # elif to.lower() == "sagemaker":
+        #     return convert_sagemaker(
+        #         self.master_df,
+        #         self.root,
+        #         copy_images=copy_images,
+        #         save_under=save_under,
+        #         output_dir=output_dir,
+        #         **kwargs,
+        #     )
+        # elif to.lower() == "createml":
+        #     return convert_createml(
+        #         self.master_df,
+        #         self.root,
+        #         copy_images=copy_images,
+        #         save_under=save_under,
+        #         output_dir=output_dir,
+        #     )
+        # elif to.lower() == "simple_json":
+        #     return convert_simple_json(
+        #         self.master_df,
+        #         self.root,
+        #         copy_images=copy_images,
+        #         save_under=save_under,
+        #         output_dir=output_dir,
+        #     )
+        # elif to.lower() == "tfrecord":
+        #     if _TF_INSTALLED:
+        #         return convert_tfrecord(
+        #             self.master_df,
+        #             self.root,
+        #             has_image_split=self._has_image_split,
+        #             output_dir=output_dir,
+        #             save_under=save_under,
+        #             copy_images=copy_images,
+        #         )
+        #     else:
+        #         raise ImportError("Please Install Tensorflow for tfrecord support")
+        # else:
+        #     raise NotImplementedError

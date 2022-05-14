@@ -5,22 +5,20 @@ Created: Wednesday, 31st March 2021
 """
 
 import json
-import os
 import warnings
-from typing import Union
 
 import imagesize
 import pandas as pd
 
 from .base import FormatSpec
-from .utils import exists, get_annotation_dir, get_image_dir
+from .utils import Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class CreateML(FormatSpec):
     """Class to handle createML json annotation transformations
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Union[Pathlike]): path to root directory. Expects the ``root`` directory to have either
             of the following layouts:
 
             .. code-block:: bash
@@ -55,8 +53,7 @@ class CreateML(FormatSpec):
                     └── label.json
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = root
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)

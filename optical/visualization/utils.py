@@ -5,23 +5,24 @@ Created: Thursday, 8th April 2021
 """
 import collections
 import copy
-import os
 import random
 import textwrap
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import bounding_box.bounding_box as bb
 import matplotlib.pyplot as plt
 import mediapy as media
 import numpy as np
 from mpl_toolkits.axes_grid1 import ImageGrid
+from numpy.typing import NDArray
+from optical.detection.formats.utils import Pathlike
 from PIL import Image, ImageDraw, ImageOps
 
 from .config import COLORS, IMAGE_BORDER, IMAGE_EXT
+from .shapes import Box, Color
 
 
-def check_num_imgs(images_dir: Union[str, os.PathLike]) -> int:
+def check_num_imgs(images_dir: Pathlike) -> int:
     """Checks number of images in given directory"""
     images_dir = Path(images_dir)
     file_counts = collections.Counter(p.suffix for p in images_dir.iterdir())
@@ -64,7 +65,7 @@ class Resizer(object):
         return img, bboxes
 
     def _set_letterbox_dims(self):
-        """ Get letterbox resize dimensions of the images."""
+        """Get letterbox resize dimensions of the images."""
         iw, ih = self.orig_dim
         ew, eh = self.expected_size
 
@@ -115,8 +116,8 @@ class Resizer(object):
 
 
 def plot_boxes(
-    img: Image,
-    bboxes: np.ndarray,
+    img: Union[NDArray, Image.Image],
+    bboxes: NDArray,
     scores: Optional[List] = None,
     class_map: Optional[Dict] = dict(),
     class_color_map: Optional[Dict] = dict(),
@@ -134,26 +135,37 @@ def plot_boxes(
     Returns:
         Image: PIL images on which annotations are drawn.
     """
-    draw_img = np.array(img)
+    if not isinstance(img, np.ndarray):
+        draw_img = np.array(img)
+    reverse_class_map = {v: k for k, v in class_map.items()}
+
     for i, box in enumerate(bboxes):
         threshold = kwargs.get("threshold", None)
         if threshold is not None and scores[i] < threshold:
             continue
         bbox = list(map(lambda x: max(0, int(x)), box[:-1]))
+        bbox = Box(*bbox)
+
         if not isinstance(box[-1], str):
             category = class_map.get(int(box[-1]), str(int(box[-1])))
         else:
             category = box[-1]
+
         if kwargs.get("truncate_label", None) is not None:
             category = "".join([cat[0].lower() for cat in category.split(kwargs.get("truncate_label"))])
+
         if scores is not None:
             category = category + ":" + str(round(scores[i], 2))
-        color = class_color_map.get(int(box[-1]), "green")
-        bb.add(draw_img, *bbox, category, color=color)
+
+        color = list(Color)[reverse_class_map[category] % 16]
+        bbox.draw(draw_img, color, 2)
+        bbox.add_label(draw_img, category, color)
+        # color = class_color_map.get(int(box[-1]), "green")
+        # bb.add(draw_img, *bbox, category, color=color)
     return Image.fromarray(draw_img)
 
 
-def check_save_path(save_path: Union[str, os.PathLike], name: str = None) -> str:
+def check_save_path(save_path: Pathlike, name: str = None) -> str:
     """Validates output path, creates one if it does exist."""
     save_path = Path(save_path)
     Path.mkdir(save_path, parents=True, exist_ok=True)
@@ -249,7 +261,7 @@ def render_grid_mpy(drawn_imgs: List, image_names: List, **kwargs) -> Any:
 
 
 def add_name_strip(img: np.ndarray, name: str):
-    """ Adds name to image at the top."""
+    """Adds name to image at the top."""
     drawn_img = ImageOps.expand(img, border=IMAGE_BORDER, fill=(255, 255, 255))
     name = name.split("/")[-1]
     lines = textwrap.wrap(name, width=32)

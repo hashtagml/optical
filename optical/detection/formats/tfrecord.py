@@ -4,24 +4,24 @@ license: MIT
 Created: Friday, 16th April 2021
 """
 
-import os
-from typing import Union
+import io
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from joblib import Parallel, delayed
-
+from PIL import Image
 
 from .base import FormatSpec
-from .utils import _tf_parse_example, tf_decode_image
+from .utils import Pathlike, _tf_parse_example
 
 
 class Tfrecord(FormatSpec):
     """Represents a tfrecord annotation object.
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
            of the following layouts:
 
            .. code-block:: bash
@@ -33,7 +33,7 @@ class Tfrecord(FormatSpec):
 
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
+    def __init__(self, root: Pathlike):
         self.root = root
         self._has_image_split = False
         image_path = Path(root) / "images"
@@ -52,8 +52,20 @@ class Tfrecord(FormatSpec):
 
         return ann_splits
 
+    def _tf_decode_image(root: Pathlike, data: tf.train.Example, split: str):
+        """Decodes images and save in images folder under root
+
+        Args:
+            root (Union[str, os.PathLike, PosixPath]): path to root directory
+            data (tf.train.Example): single image example
+            split (Union[str, os.PathLike, PosixPath]): split directory
+        """
+        img_filename = data["image/filename"].numpy().decode("utf-8")
+        img = data["image/encoded"].numpy()
+        im = Image.open(io.BytesIO(img))
+        im.save(str(Path(root) / "images" / split / img_filename))
+
     def _resolve_dataframe(self):
-        import tensorflow as tf
 
         img_filenames = []
         img_widths = []
@@ -94,7 +106,7 @@ class Tfrecord(FormatSpec):
                     splits.append(split)
                     img_paths.append(self._image_dir.joinpath(split, img_filename))
             _ = Parallel(n_jobs=-1, backend="threading")(
-                delayed(tf_decode_image)(self.root, data, split) for data in dataset
+                delayed(self._tf_decode_image)(self.root, data, split) for data in dataset
             )
         master_df = pd.DataFrame(
             list(

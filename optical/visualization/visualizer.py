@@ -290,6 +290,7 @@ class Visualizer:
         """
         drawn_imgs = []
         image_names = []
+
         for img_ann_info in batch:
             img_name = img_ann_info["img"]["image_name"]
             img = img_ann_info["img"]["image"]
@@ -367,6 +368,7 @@ class Visualizer:
             batch = self._get_batch(index=index, name=None, **kwargs)
 
         drawn_img, image_name = self._draw_images(batch, **kwargs)
+
         if save_path is not None:
             save_path = check_save_path(save_path, image_name[0])
             drawn_img[0].save(save_path)

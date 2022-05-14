@@ -4,24 +4,22 @@ license: MIT
 Created: Wednesday, 31st March 2021
 """
 
-import os
 from pathlib import Path
-from typing import Union
 
 import imagesize
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from ..visualizer.utils import check_df_cols
+from ...visualization.utils import check_df_cols
 from .base import FormatSpec
-from .utils import exists, get_annotation_dir, get_image_dir
+from .utils import Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class Csv(FormatSpec):
     """Represents a CSV annotation object.
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
            of the following layouts:
 
            .. code-block:: bash
@@ -56,8 +54,7 @@ class Csv(FormatSpec):
                     └── label.csv
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = Path(root)
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)

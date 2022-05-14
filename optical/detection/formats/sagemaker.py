@@ -5,20 +5,19 @@ Created: Wednesday, 31st March 2021
 """
 
 import json
-import os
-from typing import Union
+from typing import Dict
 
 import pandas as pd
 
 from .base import FormatSpec
-from .utils import exists, find_job_metadata_key, get_annotation_dir, get_image_dir
+from .utils import Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class SageMaker(FormatSpec):
     """Class to handle sagemaker '.manifest' annotation transformations
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
             of the following layouts:
 
             .. code-block:: bash
@@ -53,8 +52,7 @@ class SageMaker(FormatSpec):
                     └── label.manifest
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = root
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
@@ -63,6 +61,12 @@ class SageMaker(FormatSpec):
         assert exists(self._annotation_dir), "root is missing `annotations` directory."
         self._find_splits()
         self._resolve_dataframe()
+
+    def _find_job_metadata_key(json_data: Dict):
+        """finds metadata key for sagemaker manifest format"""
+        for key in json_data.keys():
+            if key.split("-")[-1] == "metadata":
+                return key
 
     def _resolve_dataframe(self):
         master_data = {
@@ -91,7 +95,7 @@ class SageMaker(FormatSpec):
 
             for line in manifest_lines:
                 json_line = json.loads(line)
-                job_metadata_key = find_job_metadata_key(json_line)
+                job_metadata_key = self._find_job_metadata_key(json_line)
                 assert (
                     json_line[job_metadata_key]["type"] == "groundtruth/object-detection"
                 ), "supports object detection manifest files"

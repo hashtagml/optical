@@ -19,14 +19,14 @@ from joblib import Parallel, delayed
 from tqdm.auto import tqdm
 
 from .base import FormatSpec
-from .utils import NUM_THREADS, exists, get_annotation_dir, get_image_dir
+from .utils import NUM_THREADS, Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class Yolo(FormatSpec):
     """Represents a YOLO annotation object.
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
            of the following layouts:
 
            .. code-block:: bash
@@ -70,8 +70,7 @@ class Yolo(FormatSpec):
                     └── dataset.yaml [Optional]
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = root
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self.class_file = [y for y in Path(self.root).glob("*.yaml")]
         self._image_dir = get_image_dir(root)
@@ -111,10 +110,10 @@ class Yolo(FormatSpec):
             image_widths = []
 
             split = split if self._has_image_split else ""
-            annotations = Path(self._annotation_dir).joinpath(split).glob("*.txt")
+            annotations = list(Path(self._annotation_dir).joinpath(split).glob("*.txt"))
 
             parse_partial = partial(self._parse_txt_file, split)
-            all_instances = Parallel(n_jobs=NUM_THREADS, backend="multiprocessing")(
+            all_instances = Parallel(n_jobs=NUM_THREADS, backend="threading")(
                 delayed(parse_partial)(txt) for txt in tqdm(annotations, desc=split)
             )
             for instances in all_instances:

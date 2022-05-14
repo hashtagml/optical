@@ -4,22 +4,22 @@ license: MIT
 Created: Monday, 29th March 2021
 """
 
-import os
+import json
 import warnings
-from typing import List, Union
+from typing import List
 
 import numpy as np
 import pandas as pd
 
 from .base import FormatSpec
-from .utils import exists, get_annotation_dir, get_image_dir, read_coco
+from .utils import Pathlike, exists, get_annotation_dir, get_image_dir
 
 
 class Coco(FormatSpec):
     """Represents a COCO annotation object.
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
            of the following layouts:
 
            .. code-block:: bash
@@ -54,7 +54,7 @@ class Coco(FormatSpec):
                     └── label.json
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
@@ -71,6 +71,12 @@ class Coco(FormatSpec):
             class_map[cat["id"]] = cat["name"]
         return class_map
 
+    def _read_coco_components(self, coco_json: Pathlike):
+        """read a coco json and returns the images, annotations and categories dict separately"""
+        with open(coco_json, "r") as f:
+            coco = json.load(f)
+        return coco["images"], coco["annotations"], coco["categories"]
+
     def _resolve_dataframe(self):
         split_str = []
         master_df = pd.DataFrame(
@@ -78,7 +84,7 @@ class Coco(FormatSpec):
         )
         for split in self._splits:
             coco_json = self._annotation_dir / f"{split}.json"
-            images, annots, cats = read_coco(coco_json)
+            images, annots, cats = self._read_coco_components(coco_json)
             split_str.append([split, len(images), len(annots), len(cats)])
 
             class_map = self._get_class_map(cats)
@@ -116,7 +122,7 @@ class Coco(FormatSpec):
                 warnings.warn(
                     "There are annotations in your dataset for which there is no matching images"
                     + f"(in split `{split}`). These annotations will be removed during any "
-                    + "computation or conversion. It is recommended that you clean your dataset."
+                    + "computation or export. It is recommended that you clean your dataset."
                 )
 
             master_df = pd.concat([master_df, annots_df], ignore_index=True)

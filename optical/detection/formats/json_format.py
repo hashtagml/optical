@@ -6,22 +6,20 @@ Created: Monday, 29th March 2021
 
 
 import json
-import os
 from pathlib import Path
-from typing import Union
 
 import imagesize
 import pandas as pd
 
 from .base import FormatSpec
-from .utils import exists, get_annotation_dir, get_image_dir
+from .utils import Pathlike, exists, get_annotation_dir, get_image_dir
 
 
-class SimpleJson(FormatSpec):
+class Json(FormatSpec):
     """Represents a SimleJson annotation object.
 
     Args:
-        root (Union[str, os.PathLike]): path to root directory. Expects the ``root`` directory to have either
+        root (Pathlike): path to root directory. Expects the ``root`` directory to have either
            of the following layouts:
 
            .. code-block:: bash
@@ -56,8 +54,7 @@ class SimpleJson(FormatSpec):
                     └── label.json
     """
 
-    def __init__(self, root: Union[str, os.PathLike]):
-        # self.root = Path(root)
+    def __init__(self, root: Pathlike):
         super().__init__(root)
         self._image_dir = get_image_dir(root)
         self._annotation_dir = get_annotation_dir(root)
@@ -103,6 +100,7 @@ class SimpleJson(FormatSpec):
                 split_path = split if self._has_image_split else ""
                 im_path = list(Path(self._image_dir).joinpath(split_path).glob(f"{im_id}"))[0]
                 im_width, im_height = imagesize.get(im_path)
+
                 if not len(anns):
                     image_ids.append(im_id)
                     image_paths.append(im_path)
@@ -111,6 +109,7 @@ class SimpleJson(FormatSpec):
                     x_mins.append(None), y_mins.append(None), widths.append(None), heights.append(None)
                     categorys.append(None), class_ids.append(None), scores.append(None)
                     splits.append(split)
+
                 for ann in anns:
                     image_ids.append(im_id)
                     image_paths.append(im_path)

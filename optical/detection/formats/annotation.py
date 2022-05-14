@@ -1,57 +1,62 @@
 """
 __author__: HashTagML
-license: MIT
-Created: Sunday, 28th March 2021
+Created: Tuesday, 10th May 2022 12:16:28 am
 """
-# TODO: needs better solution for Handling TFrecords
 
-import os
 import random
+import warnings
 from pathlib import Path
 from typing import Optional, Union
-import warnings
 
+from ...visualization import Visualizer
+from .base import FormatSpec
 from .coco import Coco
+from .createml import CreateML
 from .csv import Csv
-from .yolo import Yolo
+from .json_format import Json
 from .pascal import Pascal
 from .sagemaker import SageMaker
-from .createml import CreateML
-from .tfrecord import Tfrecord
-from .simple_json import SimpleJson
-from ..visualizer.visualizer import Visualizer
-from .utils import get_image_dir, ifnone
-
-from ..converter.base import FormatSpec
+from .utils import CopyType, DetectionFormat, Pathlike, get_image_dir
+from .yolo import Yolo
 
 _TF_INSTALLED = True
 try:
-    import tensorflow as tf
+    import tensorflow  # noqa:F401
+
+    from .tfrecord import Tfrecord
 except ImportError:
     _TF_INSTALLED = False
 
-SUPPORTED_FORMATS = {
-    "coco": Coco,
-    "csv": Csv,
-    "yolo": Yolo,
-    "sagemaker": SageMaker,
-    "pascal": Pascal,
-    "tfrecord": Tfrecord,
-    "createml": CreateML,
-    "simple_json": SimpleJson,
-}
+
+def get_formatspec(format: DetectionFormat, root: Union[str, Path]) -> FormatSpec:
+    if format == DetectionFormat.COCO:
+        return Coco(root)
+    if format == DetectionFormat.CREATEML:
+        return CreateML(root)
+    if format == DetectionFormat.CSV:
+        return Csv(root)
+    if format == DetectionFormat.PASCAL_VOC:
+        return Pascal(root)
+    if format == DetectionFormat.JSON:
+        return Json(root)
+    if format == DetectionFormat.SAGEMAKER_MANIFEST:
+        return SageMaker(root)
+    if format == DetectionFormat.YOLO:
+        return Yolo(root)
+    if format == DetectionFormat.TFRECORD:
+        return Tfrecord(root)
 
 
 class Annotation:
-    def __init__(self, root: str, format: str):
-        if format.lower() not in SUPPORTED_FORMATS:
-            raise ValueError(f"`{format}` is not a supported format")
+    def __init__(self, root: Pathlike, format: DetectionFormat):
 
-        if format.lower() == "tfrecord" and not _TF_INSTALLED:
+        format = DetectionFormat(format)
+
+        if format == DetectionFormat.TFRECORD and not _TF_INSTALLED:
             raise ImportError("Please Install Tensorflow for tfrecord support")
         self.root = root
         self.format = format
-        self.formatspec = SUPPORTED_FORMATS[format.lower()](root)
+        self.formatspec = get_formatspec(format, root)
 
     def __str__(self):
         return self.formatspec.__str__()
@@ -79,11 +84,17 @@ class Annotation:
     def bbox_stats(self, split: Optional[str] = None, category: Optional[str] = None):
         return self.formatspec.bbox_stats(split, category)
 
-    def export(self, to: str, output_dir: Optional[Union[str, os.PathLike]] = None, **kwargs):
-        if not to.lower() in SUPPORTED_FORMATS:
-            raise ValueError(f"`{to}` is not a supported conversion format")
-
-        return self.formatspec.convert(to.lower(), output_dir=output_dir, **kwargs)
+    def export(
+        self,
+        to: DetectionFormat,
+        output_dir: Optional[Pathlike] = None,
+        copy_images: Optional[CopyType] = None,
+        prefix: Optional[str] = None,
+    ):
+        to = DetectionFormat(to)
+        return self.formatspec.convert(
+            to.lower(), root=self.root, output_dir=output_dir, prefix=prefix, copy_images=copy_images
+        )
 
     def train_test_split(self, test_size: float = 0.2, stratified: bool = False, random_state: int = 42):
         """splits the dataset into train and validation sets
@@ -100,7 +111,7 @@ class Annotation:
 
     def visualizer(
         self,
-        image_dir: Optional[Union[str, os.PathLike]] = None,
+        image_dir: Optional[Pathlike] = None,
         split: Optional[str] = None,
         img_size: Optional[int] = 512,
         **kwargs,
