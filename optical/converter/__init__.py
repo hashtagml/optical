@@ -106,13 +106,11 @@ class Annotation:
         **kwargs,
     ):
         if image_dir is None:
-            random_split = random.choice(list(self.formatspec.master_df.split.unique()))
-            if split is None:
+            splits = list(self.formatspec.master_df.split.unique())
+            random_split = random.choice(splits)
+            if len(splits) > 1 and split is None:
                 split = random_split
-                warnings.warn(
-                    f"Since there is not split specified explicitly, {split} has been selected randomly."
-                    + "Please specify split if you want to visualize different split."
-                )
+                warnings.warn(f"Split not specified, {split} has been selected randomly.")
             if self.formatspec._has_image_split:
                 image_dir = get_image_dir(self.root) / split
             else:

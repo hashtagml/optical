@@ -64,7 +64,7 @@ class Resizer(object):
         return img, bboxes
 
     def _set_letterbox_dims(self):
-        """ Get letterbox resize dimensions of the images."""
+        """Get letterbox resize dimensions of the images."""
         iw, ih = self.orig_dim
         ew, eh = self.expected_size
 
@@ -147,7 +147,7 @@ def plot_boxes(
         if kwargs.get("truncate_label", None) is not None:
             category = "".join([cat[0].lower() for cat in category.split(kwargs.get("truncate_label"))])
         if scores is not None:
-            category = category + ":" + str(round(scores[i], 2))
+            category = category + ":" + str(round(scores[i], 2)) if scores[i] is not None else category
         color = class_color_map.get(int(box[-1]), "green")
         bb.add(draw_img, *bbox, category, color=color)
     return Image.fromarray(draw_img)
@@ -249,7 +249,7 @@ def render_grid_mpy(drawn_imgs: List, image_names: List, **kwargs) -> Any:
 
 
 def add_name_strip(img: np.ndarray, name: str):
-    """ Adds name to image at the top."""
+    """Adds name to image at the top."""
     drawn_img = ImageOps.expand(img, border=IMAGE_BORDER, fill=(255, 255, 255))
     name = name.split("/")[-1]
     lines = textwrap.wrap(name, width=32)
