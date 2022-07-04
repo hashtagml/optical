@@ -20,6 +20,8 @@ Optical aims to be the tool right next to your hand when you work on a computer 
 
 </div>
 
+
+
 ## Where is optical useful?
 
 Object detection is one of the mainstream computer vision tasks. However, when it comes to training an object detection model, there is a variety of formats that one has to deal with for different models e.g. `COCO`, `PASCAL VOC`, `Yolo` and so on. `optical` provides a simple interface to convert back and forth between these annotation formats and also perform a bunch of exploratory data analysis (EDA) on these datasets regardless of their source format.
