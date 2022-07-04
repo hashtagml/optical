@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from joblib import Parallel, delayed
+from pathlib import Path
 from pandas.api.types import is_numeric_dtype
 
 from .utils import (
@@ -159,10 +160,16 @@ class Visualizer:
                 batch_img_indices = [name]
                 use_original = True
             else:
-                print(f"{name} not found in the dataset. Please check")
+                warnings.warn(f"{name} not found in the dataset. Please check")
 
         else:
             actual_num_images = min(len(unique_images), num_imgs)
+            if actual_num_images <= 0:
+                warnings.warn(
+                    "Could not find any valid images to visualize, "
+                    + "check the images directory or filters applied if any."
+                )
+                return []
             if actual_num_images < num_imgs:
                 warnings.warn(f"Found only {actual_num_images} in the dataset.")
             if random:
@@ -217,6 +224,8 @@ class Visualizer:
             self.previous_batch = batch
             self.previous_args = kwargs
 
+        if len(batch) <= 0:
+            return
         drawn_imgs, image_names = self._draw_images(batch, **kwargs)
         if num_imgs != len(drawn_imgs):
             num_imgs = len(drawn_imgs)
@@ -319,7 +328,7 @@ class Visualizer:
             pd.DataFrame: Filtered dataframe.
         """
         if kwargs.get("only_without_labels", None):
-            df = self.original_df[self.df["class_id"].isna() & self.df["category"].isna()]
+            df = self.original_df[self.original_df["class_id"].isna() & self.original_df["category"].isna()]
             return df
         curr_df = self.original_df.copy()
         if kwargs.get("only_with_labels", None):
@@ -367,8 +376,9 @@ class Visualizer:
             batch = self._get_batch(index=index, name=None, **kwargs)
 
         drawn_img, image_name = self._draw_images(batch, **kwargs)
-        if save_path is not None:
-            save_path = check_save_path(save_path, image_name[0])
+        if save_path is not None and len(image_name) > 0:
+            img_name = Path(image_name[0]).name
+            save_path = check_save_path(save_path, img_name)
             drawn_img[0].save(save_path)
 
         if len(drawn_img) > 0:
@@ -381,7 +391,7 @@ class Visualizer:
         """Displays whole dataset as a video.
 
         Args:
-            use_original(bool): Whether to original dataset or filtered dataset.Defaults to ``True``
+            use_original(bool): Whether to use original dataset or filtered dataset.Defaults to ``True``
 
         Keyword Args:
             show_image_name(bool): Whether to show image names in the video or not.
